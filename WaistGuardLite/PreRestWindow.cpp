@@ -1,4 +1,4 @@
-// PreRestWindow.cpp
+ï»¿// PreRestWindow.cpp
 #include "PreRestWindow.h"
 #include <strsafe.h>
 
@@ -7,37 +7,93 @@ int PreRestWindow::s_remainingSeconds = 0;
 UINT_PTR PreRestWindow::s_timer = 0;
 bool PreRestWindow::s_isManualTriggered = false;
 bool PreRestWindow::s_isDelayed = false;
+const wchar_t PreRestWindow::PRE_REST_WINDOW_CLASS[] = L"WaistGuardLitePreRest";
+
+void PreRestWindow::CreateControls(HWND hwnd)
+{
+    // å®šä¹‰è¾¹è·å’Œé—´è·
+    const int LEFT_MARGIN = 30;
+    const int TOP_MARGIN = 25;
+    const int WINDOW_WIDTH = 400;
+    const int CONTENT_WIDTH = WINDOW_WIDTH - (LEFT_MARGIN * 2);
+
+    // åˆ›å»ºç»Ÿä¸€å­—ä½“
+    HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    int currentY = TOP_MARGIN;
+
+    // åˆ›å»ºå›¾æ ‡
+    HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
+    if (hIcon)
+    {
+        HWND hIconCtrl = CreateWindow(L"STATIC", NULL,
+            WS_CHILD | WS_VISIBLE | SS_ICON,
+            LEFT_MARGIN, currentY, 32, 32,
+            hwnd, NULL, GetModuleHandle(NULL), NULL);
+        SendMessage(hIconCtrl, STM_SETICON, (WPARAM)hIcon, 0);
+    }
+
+    // åˆ›å»ºæç¤ºæ–‡æœ¬
+    wchar_t text[64];
+    swprintf_s(text, s_isManualTriggered ?
+        L"å³å°†å¼€å§‹ä¼‘æ¯ï¼š%dç§’" :
+        L"å·¥ä½œæ—¶é—´åˆ°äº†ï¼Œ%dç§’åå¼€å§‹ä¼‘æ¯",
+        s_remainingSeconds);
+
+    HWND hTips = CreateWindow(L"STATIC", text,
+        WS_CHILD | WS_VISIBLE | SS_CENTER,  // å±…ä¸­å¯¹é½
+        LEFT_MARGIN, currentY + 50, CONTENT_WIDTH, 25,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hTips, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+    // åˆ›å»ºå»¶è¿ŸæŒ‰é’®å’Œå…³é—­æŒ‰é’®
+    const int BTN_WIDTH = 90;
+    const int BTN_HEIGHT = 30;
+    const int BTN_SPACING = 10;
+    const int TOTAL_BTN_WIDTH = (BTN_WIDTH * 2) + BTN_SPACING;
+    const int BTN_START_X = (WINDOW_WIDTH - TOTAL_BTN_WIDTH) / 2;
+
+    // å»¶è¿ŸæŒ‰é’®
+    HWND hDelayBtn = CreateWindow(L"BUTTON", L"å»¶è¿Ÿ3åˆ†é’Ÿ",
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        BTN_START_X, currentY + 100,
+        BTN_WIDTH, BTN_HEIGHT,
+        hwnd, (HMENU)1001, GetModuleHandle(NULL), NULL);
+    SendMessage(hDelayBtn, WM_SETFONT, (WPARAM)hFont, TRUE);
+}
 
 bool PreRestWindow::Create(bool isManual)
 {
     if (s_hwnd != NULL)
         return false;
 
-    // ×¢²á´°¿ÚÀà
+    // æ³¨å†Œçª—å£ç±»
     RegisterWindowClass(GetModuleHandle(NULL));
 
-    // ´´½¨´°¿Ú
+    // åˆ›å»ºçª—å£
     s_hwnd = CreateWindowEx(
-        WS_EX_TOPMOST,           // ×ÜÔÚ×îÇ°
-        PRE_REST_WINDOW_CLASS,   // ´°¿ÚÀàÃû
-        L"¼´½«ĞİÏ¢",             // ´°¿Ú±êÌâ
-        WS_POPUP | WS_VISIBLE,   // ´°¿ÚÑùÊ½
-        0, 0,                    // Î»ÖÃ
-        350, 200,               // ´óĞ¡
-        NULL, NULL,             // ¸¸´°¿ÚºÍ²Ëµ¥
-        GetModuleHandle(NULL),  // ÊµÀı¾ä±ú
-        NULL                    // ¸½¼ÓÊı¾İ
+        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // æ‰©å±•æ ·å¼ï¼šå¯¹è¯æ¡†è¾¹æ¡†
+        PRE_REST_WINDOW_CLASS,   // çª—å£ç±»å
+        L"å³å°†ä¼‘æ¯",             // çª—å£æ ‡é¢˜
+        WS_OVERLAPPEDWINDOW,    // ä½¿ç”¨æ ‡å‡†çª—å£æ ·å¼ï¼Œä¸è®¾ç½®ç•Œé¢ä¿æŒä¸€è‡´
+        0, 0,                    // ä½ç½®
+        400, 200,               // å¤§å°
+        NULL, NULL,             // çˆ¶çª—å£å’Œèœå•
+        GetModuleHandle(NULL),  // å®ä¾‹å¥æŸ„
+        NULL                    // é™„åŠ æ•°æ®
     );
 
     if (s_hwnd)
     {
-        // ³õÊ¼»¯
+        // åˆå§‹åŒ–
         s_isManualTriggered = isManual;
-        s_remainingSeconds = isManual ? 5 : 10;  // ÊÖ¶¯´¥·¢5Ãë£¬×Ô¶¯´¥·¢10Ãë
+        s_remainingSeconds = isManual ? 5 : 10;  // æ‰‹åŠ¨è§¦å‘5ç§’ï¼Œè‡ªåŠ¨è§¦å‘10ç§’
         s_isDelayed = false;
         s_timer = SetTimer(s_hwnd, 1, 1000, TimerProc);
 
-        // ¾ÓÖĞ´°¿Ú
+        // å±…ä¸­çª—å£
         int screenWidth = GetSystemMetrics(SM_CXSCREEN);
         int screenHeight = GetSystemMetrics(SM_CYSCREEN);
         RECT rect;
@@ -48,10 +104,10 @@ bool PreRestWindow::Create(bool isManual)
         int y = (screenHeight - windowHeight) / 2;
         SetWindowPos(s_hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
-        // ´´½¨ÑÓ³Ù°´Å¥
-        CreateDelayButton(s_hwnd);
+        // åˆ›å»ºæ§ä»¶
+        CreateControls(s_hwnd);
 
-        // ÏÔÊ¾´°¿Ú
+        // æ˜¾ç¤ºçª—å£
         ShowWindow(s_hwnd, SW_SHOW);
         UpdateWindow(s_hwnd);
         return true;
@@ -66,7 +122,9 @@ void PreRestWindow::RegisterWindowClass(HINSTANCE hInstance)
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = PRE_REST_WINDOW_CLASS;
-    wc.hbrBackground = CreateSolidBrush(RGB(255, 255, 255));
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WAISTGUARDLITE));  // æ·»åŠ å›¾æ ‡
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);  // æ·»åŠ é¼ æ ‡æŒ‡é’ˆ
     RegisterClass(&wc);
 }
 
@@ -79,31 +137,31 @@ LRESULT CALLBACK PreRestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        // ÉèÖÃÎÄ±¾ÑÕÉ«ºÍ±³¾°Ä£Ê½
+        // è®¾ç½®æ–‡æœ¬é¢œè‰²å’ŒèƒŒæ™¯æ¨¡å¼
         SetTextColor(hdc, RGB(51, 51, 51));
         SetBkMode(hdc, TRANSPARENT);
 
-        // ´´½¨×ÖÌå
+        // åˆ›å»ºå­—ä½“
         HFONT hFont = CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
         HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
 
-        // »ñÈ¡´°¿Ú¿Í»§Çø´óĞ¡
+        // è·å–çª—å£å®¢æˆ·åŒºå¤§å°
         RECT rect;
         GetClientRect(hwnd, &rect);
-        rect.top = 20;  // µ÷ÕûÎÄ±¾Î»ÖÃ
+        rect.top = 20;  // è°ƒæ•´æ–‡æœ¬ä½ç½®
 
-        // »æÖÆÎÄ±¾
+        // ç»˜åˆ¶æ–‡æœ¬
         wchar_t text[64];
         swprintf_s(text, s_isManualTriggered ?
-            L"¼´½«¿ªÊ¼ĞİÏ¢£º%dÃë" :
-            L"¹¤×÷Ê±¼äµ½ÁË£¬%dÃëºó¿ªÊ¼ĞİÏ¢",
+            L"å³å°†å¼€å§‹ä¼‘æ¯ï¼š%dç§’" :
+            L"å·¥ä½œæ—¶é—´åˆ°äº†ï¼Œ%dç§’åå¼€å§‹ä¼‘æ¯",
             s_remainingSeconds);
         DrawText(hdc, text, -1, &rect, DT_CENTER | DT_SINGLELINE);
 
-        // ÇåÀí
+        // æ¸…ç†
         SelectObject(hdc, hOldFont);
         DeleteObject(hFont);
 
@@ -112,10 +170,14 @@ LRESULT CALLBACK PreRestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
     }
 
     case WM_COMMAND:
-        if (LOWORD(wParam) == 1001)  // ÑÓ³Ù°´Å¥
+        if (LOWORD(wParam) == 1001)  // å»¶è¿ŸæŒ‰é’®
         {
             s_isDelayed = true;
             Close();
+        }
+        else if (LOWORD(wParam) == IDCANCEL)  // å¤„ç†çª—å£å…³é—­æŒ‰é’®
+        {
+            DestroyWindow(hwnd);
         }
         return 0;
 
@@ -147,22 +209,4 @@ void PreRestWindow::Close()
         DestroyWindow(s_hwnd);
         s_hwnd = NULL;
     }
-}
-
-void PreRestWindow::CreateDelayButton(HWND hwnd)
-{
-    // ´´½¨ÑÓ³Ù°´Å¥
-    CreateWindow(
-        L"BUTTON",              // °´Å¥Àà
-        L"ÑÓ³Ù3·ÖÖÓ",           // °´Å¥ÎÄ±¾
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // ÑùÊ½
-        125,                    // X Î»ÖÃ
-        100,                    // Y Î»ÖÃ
-        100,                    // ¿í¶È
-        30,                     // ¸ß¶È
-        hwnd,                   // ¸¸´°¿Ú
-        (HMENU)1001,           // °´Å¥ ID
-        GetModuleHandle(NULL),  // ÊµÀı¾ä±ú
-        NULL                    // ¸½¼ÓÊı¾İ
-    );
 }

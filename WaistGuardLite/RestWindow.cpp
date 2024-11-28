@@ -1,4 +1,4 @@
-// RestWindow.cpp
+ï»¿// RestWindow.cpp
 #include "RestWindow.h"
 #include <strsafe.h>
 
@@ -7,12 +7,12 @@ int RestWindow::s_remainingSeconds = 0;
 UINT_PTR RestWindow::s_timer = 0;
 int RestWindow::s_currentTipIndex = 0;
 
-// ĞİÏ¢ÌáÊ¾Óï
+// ä¼‘æ¯æç¤ºè¯­
 const wchar_t* RestWindow::s_tips[] = {
-    L"»¤ÑüÉñÆ÷ÌáĞÑÄú£º³¤Ê±¼äµÄÆ£ÀÍÈİÒ×µ¼ÖÂ´íÎóºÍÊ§Îó...",
-    L"»¤ÑüÉñÆ÷ÌáĞÑÄú£ºÊÊµ±ĞİÏ¢¿ÉÒÔÌá¸ß¹¤×÷Ğ§ÂÊ...",
-    L"»¤ÑüÉñÆ÷ÌáĞÑÄú£ºÕ¾ÆğÀ´»î¶¯Ò»ÏÂ£¬ÈÃÉíÌå±£³Ö»îÁ¦...",
-    L"»¤ÑüÉñÆ÷ÌáĞÑÄú£º¼ÇµÃ¶àºÈË®£¬±£»¤ºÃÑü×µ..."
+    L"æŠ¤è…°ç¥å™¨æé†’æ‚¨ï¼šé•¿æ—¶é—´çš„ç–²åŠ³å®¹æ˜“å¯¼è‡´é”™è¯¯å’Œå¤±è¯¯...",
+    L"æŠ¤è…°ç¥å™¨æé†’æ‚¨ï¼šé€‚å½“ä¼‘æ¯å¯ä»¥æé«˜å·¥ä½œæ•ˆç‡...",
+    L"æŠ¤è…°ç¥å™¨æé†’æ‚¨ï¼šç«™èµ·æ¥æ´»åŠ¨ä¸€ä¸‹ï¼Œè®©èº«ä½“ä¿æŒæ´»åŠ›...",
+    L"æŠ¤è…°ç¥å™¨æé†’æ‚¨ï¼šè®°å¾—å¤šå–æ°´ï¼Œä¿æŠ¤å¥½è…°æ¤..."
 };
 
 bool RestWindow::Create(int duration)
@@ -20,39 +20,39 @@ bool RestWindow::Create(int duration)
     if (s_hwnd != NULL)
         return false;
 
-    // ×¢²á´°¿ÚÀà
+    // æ³¨å†Œçª—å£ç±»
     RegisterWindowClass(GetModuleHandle(NULL));
 
-    // »ñÈ¡ÆÁÄ»³ß´ç
+    // è·å–å±å¹•å°ºå¯¸
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    // ´´½¨È«ÆÁ´°¿Ú
+    // åˆ›å»ºå…¨å±çª—å£
     s_hwnd = CreateWindowEx(
-        WS_EX_TOPMOST,           // ×ÜÔÚ×îÇ°
-        REST_WINDOW_CLASS,       // ´°¿ÚÀàÃû
-        L"ĞİÏ¢Ê±¼ä",             // ´°¿Ú±êÌâ
-        WS_POPUP,               // ÎŞ±ß¿ò´°¿Ú
-        0, 0,                   // Î»ÖÃ
-        screenWidth,            // ¿í¶È
-        screenHeight,           // ¸ß¶È
-        NULL, NULL,             // ¸¸´°¿ÚºÍ²Ëµ¥
-        GetModuleHandle(NULL),  // ÊµÀı¾ä±ú
-        NULL                    // ¸½¼ÓÊı¾İ
+        WS_EX_TOPMOST,           // æ€»åœ¨æœ€å‰
+        REST_WINDOW_CLASS,       // çª—å£ç±»å
+        L"ä¼‘æ¯æ—¶é—´",             // çª—å£æ ‡é¢˜
+        WS_POPUP,               // æ— è¾¹æ¡†çª—å£
+        0, 0,                   // ä½ç½®
+        screenWidth,            // å®½åº¦
+        screenHeight,           // é«˜åº¦
+        NULL, NULL,             // çˆ¶çª—å£å’Œèœå•
+        GetModuleHandle(NULL),  // å®ä¾‹å¥æŸ„
+        NULL                    // é™„åŠ æ•°æ®
     );
 
     if (s_hwnd)
     {
-        // ³õÊ¼»¯
+        // åˆå§‹åŒ–
         s_remainingSeconds = duration * 60;
         s_currentTipIndex = 0;
         s_timer = SetTimer(s_hwnd, 1, 1000, TimerProc);
 
-        // ÏÔÊ¾´°¿Ú
+        // æ˜¾ç¤ºçª—å£
         ShowWindow(s_hwnd, SW_SHOW);
         UpdateWindow(s_hwnd);
 
-        // ½ûÓÃ¼üÅÌ
+        // ç¦ç”¨é”®ç›˜
         DisableKeyboard();
         return true;
     }
@@ -79,36 +79,36 @@ LRESULT CALLBACK RestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        // ÉèÖÃÎÄ±¾ÑÕÉ«ºÍ±³¾°Ä£Ê½
-        SetTextColor(hdc, RGB(236, 65, 65));  // ÍøÒ×ÔÆºìÉ«
+        // è®¾ç½®æ–‡æœ¬é¢œè‰²å’ŒèƒŒæ™¯æ¨¡å¼
+        SetTextColor(hdc, RGB(236, 65, 65));  // ç½‘æ˜“äº‘çº¢è‰²
         SetBkMode(hdc, TRANSPARENT);
 
-        // ´´½¨±êÌâ×ÖÌå
+        // åˆ›å»ºæ ‡é¢˜å­—ä½“
         HFONT hTitleFont = CreateFont(28, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
-        // ´´½¨µ¹¼ÆÊ±×ÖÌå
+        // åˆ›å»ºå€’è®¡æ—¶å­—ä½“
         HFONT hCountdownFont = CreateFont(72, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
-        // ´´½¨ÌáÊ¾ÎÄ±¾×ÖÌå
+        // åˆ›å»ºæç¤ºæ–‡æœ¬å­—ä½“
         HFONT hTipsFont = CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
-        // »ñÈ¡´°¿Ú¿Í»§Çø´óĞ¡
+        // è·å–çª—å£å®¢æˆ·åŒºå¤§å°
         RECT rect;
         GetClientRect(hwnd, &rect);
 
-        // »æÖÆ±êÌâ
+        // ç»˜åˆ¶æ ‡é¢˜
         HFONT hOldFont = (HFONT)SelectObject(hdc, hTitleFont);
         RECT titleRect = rect;
         titleRect.top = rect.bottom / 3;
-        DrawText(hdc, L"»¤ÑüÉñÆ÷ÌáĞÑÄú£ºĞİÏ¢½áÊøÊ±¼ä", -1, &titleRect, DT_CENTER | DT_SINGLELINE);
+        DrawText(hdc, L"æŠ¤è…°ç¥å™¨æé†’æ‚¨ï¼šä¼‘æ¯ç»“æŸæ—¶é—´", -1, &titleRect, DT_CENTER | DT_SINGLELINE);
 
-        // »æÖÆµ¹¼ÆÊ±
+        // ç»˜åˆ¶å€’è®¡æ—¶
         SelectObject(hdc, hCountdownFont);
         RECT countdownRect = rect;
         countdownRect.top = titleRect.top + 50;
@@ -116,8 +116,8 @@ LRESULT CALLBACK RestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         swprintf_s(countdownText, L"%02d:%02d", s_remainingSeconds / 60, s_remainingSeconds % 60);
         DrawText(hdc, countdownText, -1, &countdownRect, DT_CENTER | DT_SINGLELINE);
 
-        // »æÖÆÌáÊ¾ÎÄ±¾
-        SetTextColor(hdc, RGB(51, 51, 51));  // Éî»ÒÉ«
+        // ç»˜åˆ¶æç¤ºæ–‡æœ¬
+        SetTextColor(hdc, RGB(51, 51, 51));  // æ·±ç°è‰²
         SelectObject(hdc, hTipsFont);
         RECT tipsRect = rect;
         tipsRect.top = countdownRect.top + 100;
@@ -125,7 +125,7 @@ LRESULT CALLBACK RestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         tipsRect.right = rect.right * 3 / 4;
         DrawText(hdc, s_tips[s_currentTipIndex], -1, &tipsRect, DT_CENTER | DT_WORDBREAK);
 
-        // ÇåÀí
+        // æ¸…ç†
         SelectObject(hdc, hOldFont);
         DeleteObject(hTitleFont);
         DeleteObject(hCountdownFont);
@@ -139,7 +139,7 @@ LRESULT CALLBACK RestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     case WM_KEYUP:
     case WM_SYSKEYDOWN:
     case WM_SYSKEYUP:
-        return 0;  // ºöÂÔËùÓĞ¼üÅÌÊäÈë
+        return 0;  // å¿½ç•¥æ‰€æœ‰é”®ç›˜è¾“å…¥
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -154,7 +154,7 @@ VOID CALLBACK RestWindow::TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWOR
         return;
     }
 
-    if (s_remainingSeconds % 5 == 0)  // Ã¿5Ãë¸üĞÂÒ»´ÎÌáÊ¾Óï
+    if (s_remainingSeconds % 5 == 0)  // æ¯5ç§’æ›´æ–°ä¸€æ¬¡æç¤ºè¯­
     {
         s_currentTipIndex = (s_currentTipIndex + 1) % (sizeof(s_tips) / sizeof(s_tips[0]));
     }
@@ -173,18 +173,18 @@ void RestWindow::Close()
     }
 }
 
-// Ìí¼ÓÈ«¾Ö±äÁ¿
+// æ·»åŠ å…¨å±€å˜é‡
 HHOOK g_keyboardHook = NULL;
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode >= 0)
     {
-        return 1; // ×èÖ¹ËùÓĞ¼üÅÌÊäÈë
+        return 1; // é˜»æ­¢æ‰€æœ‰é”®ç›˜è¾“å…¥
     }
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-// RestWindow.cpp ÖĞµÄ¼üÅÌ½ûÓÃ¹¦ÄÜ
+// RestWindow.cpp ä¸­çš„é”®ç›˜ç¦ç”¨åŠŸèƒ½
 void RestWindow::DisableKeyboard()
 {
     g_keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc,

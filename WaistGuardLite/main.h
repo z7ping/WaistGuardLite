@@ -1,18 +1,18 @@
-// main.h
+ï»¿// main.h
 #pragma once
 #include <windows.h>
 #include <shellapi.h>
 #include "resource.h"
 
-// ³£Á¿¶¨Òå
+// å¸¸é‡å®šä¹‰
 const wchar_t CLASS_NAME[] = L"WaistGuardLite";
-const wchar_t WINDOW_TITLE[] = L"»¤ÑüÉñÆ÷ v1.0";
+const wchar_t WINDOW_TITLE[] = L"æŠ¤è…°ç¥å™¨ v1.0";
 
-// Ä¬ÈÏÊ±³¤ÉèÖÃ
-#define DEFAULT_WORK_MINUTES  45   // Ä¬ÈÏ¹¤×÷Ê±³¤
-#define DEFAULT_BREAK_MINUTES 5    // Ä¬ÈÏĞİÏ¢Ê±³¤
+// é»˜è®¤æ—¶é•¿è®¾ç½®
+#define DEFAULT_WORK_MINUTES  45   // é»˜è®¤å·¥ä½œæ—¶é•¿
+#define DEFAULT_BREAK_MINUTES 5    // é»˜è®¤ä¼‘æ¯æ—¶é•¿
 
-// ÍĞÅÌ²Ëµ¥ÃüÁî
+// æ‰˜ç›˜èœå•å‘½ä»¤
 #define WM_TRAYICON (WM_USER + 1)
 #define ID_TRAY_SHOW      1001
 #define ID_TRAY_REST      1002
@@ -21,22 +21,22 @@ const wchar_t WINDOW_TITLE[] = L"»¤ÑüÉñÆ÷ v1.0";
 #define ID_TRAY_ABOUT     1005
 #define ID_TRAY_EXIT      1006
 
-// È«¾Ö×´Ì¬
+// å…¨å±€çŠ¶æ€
 struct AppState {
-    HWND hwnd;              // Ö÷´°¿Ú¾ä±ú
-    UINT_PTR workTimer;     // ¹¤×÷¶¨Ê±Æ÷
-    UINT_PTR displayTimer;  // ÏÔÊ¾¶¨Ê±Æ÷
-    SYSTEMTIME startTime;   // ¿ªÊ¼Ê±¼ä
-    bool isResting;         // ÊÇ·ñÔÚĞİÏ¢
-    bool isPreResting;      // ÊÇ·ñÔÚÔ¤ĞİÏ¢
-    int workDuration;       // ¹¤×÷Ê±³¤£¨·ÖÖÓ£©
-    int breakDuration;      // ĞİÏ¢Ê±³¤£¨·ÖÖÓ£©
-    bool autoStart;         // ¿ª»ú×ÔÆô¶¯
-    NOTIFYICONDATA nid;     // ÍĞÅÌÍ¼±êÊı¾İ
+    HWND hwnd;              // ä¸»çª—å£å¥æŸ„
+    UINT_PTR workTimer;     // å·¥ä½œå®šæ—¶å™¨
+    UINT_PTR displayTimer;  // æ˜¾ç¤ºå®šæ—¶å™¨
+    SYSTEMTIME startTime;   // å¼€å§‹æ—¶é—´
+    bool isResting;         // æ˜¯å¦åœ¨ä¼‘æ¯
+    bool isPreResting;      // æ˜¯å¦åœ¨é¢„ä¼‘æ¯
+    int workDuration;       // å·¥ä½œæ—¶é•¿ï¼ˆåˆ†é’Ÿï¼‰
+    int breakDuration;      // ä¼‘æ¯æ—¶é•¿ï¼ˆåˆ†é’Ÿï¼‰
+    bool autoStart;         // å¼€æœºè‡ªå¯åŠ¨
+    NOTIFYICONDATA nid;     // æ‰˜ç›˜å›¾æ ‡æ•°æ®
 };
 
-// È«¾Ö±äÁ¿
+// å…¨å±€å˜é‡
 extern AppState g_appState;
 
-// ´°¿Ú¹ı³Ìº¯ÊıÉùÃ÷
+// çª—å£è¿‡ç¨‹å‡½æ•°å£°æ˜
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

@@ -1,4 +1,4 @@
-// Settings.cpp
+﻿// Settings.cpp
 #include "Settings.h"
 #include <strsafe.h>
 
@@ -14,26 +14,26 @@ bool Settings::Create(HWND parentHwnd)
     if (s_hwnd != NULL)
         return false;
 
-    // ע�ᴰ����
+    // 注册窗口类
     RegisterWindowClass(GetModuleHandle(NULL));
 
-    // ��������
+    // 创建窗口
     s_hwnd = CreateWindowEx(
-        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // ��չ��ʽ
-        CLASS_NAME,           // ��������
-        L"����",             // ���ڱ���
-        WS_POPUP | WS_CAPTION | WS_SYSMENU,  // ������ʽ
-        0, 0,                // λ��
-        500, 400,           // ��С
-        parentHwnd,          // ������
-        NULL,               // �˵�
-        GetModuleHandle(NULL),  // ʵ�����
-        NULL                // ��������
+        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // 扩展样式
+        CLASS_NAME,           // 窗口类名
+        L"设置",             // 窗口标题
+        WS_POPUP | WS_CAPTION | WS_SYSMENU,  // 窗口样式
+        0, 0,                // 位置
+        500, 450,           // 大小
+        parentHwnd,          // 父窗口
+        NULL,               // 菜单
+        GetModuleHandle(NULL),  // 实例句柄
+        NULL                // 附加数据
     );
 
     if (s_hwnd)
     {
-        // ���д���
+        // 居中窗口
         int screenWidth = GetSystemMetrics(SM_CXSCREEN);
         int screenHeight = GetSystemMetrics(SM_CYSCREEN);
         RECT rect;
@@ -44,10 +44,10 @@ bool Settings::Create(HWND parentHwnd)
         int y = (screenHeight - windowHeight) / 2;
         SetWindowPos(s_hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
-        // �����ؼ�
+        // 创建控件
         CreateControls(s_hwnd);
 
-        // ��ʾ����
+        // 显示窗口
         ShowWindow(s_hwnd, SW_SHOW);
         UpdateWindow(s_hwnd);
         return true;
@@ -68,55 +68,80 @@ void Settings::RegisterWindowClass(HINSTANCE hInstance)
 
 void Settings::CreateControls(HWND hwnd)
 {
-    // ������ǩ�������
-    CreateWindow(L"STATIC", L"����ʱ��(����):",
+    // 设置左右边距
+    const int LEFT_MARGIN = 30;  // 左边距从20改为30
+    const int RIGHT_MARGIN = 30; // 新增右边距
+    const int WINDOW_WIDTH = 500; // 窗口总宽度
+    const int CONTENT_WIDTH = WINDOW_WIDTH - LEFT_MARGIN - RIGHT_MARGIN; // 内容区域宽度
+
+    // 创建统一字体
+    HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    // 创建标签和输入框
+    HWND hLabel1 = CreateWindow(L"STATIC", L"工作时长(分钟):",
         WS_CHILD | WS_VISIBLE,
-        20, 20, 120, 20,
+        LEFT_MARGIN, 20, 120, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hLabel1, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_workDurationEdit = CreateWindow(L"EDIT", NULL,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        150, 20, 60, 20,
+        LEFT_MARGIN + 130, 20, 60, 25,
         hwnd, (HMENU)ID_WORK_DURATION, GetModuleHandle(NULL), NULL);
+    SendMessage(s_workDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    CreateWindow(L"STATIC", L"��Ϣʱ��(����):",
+    HWND hLabel2 = CreateWindow(L"STATIC", L"休息时长(分钟):",
         WS_CHILD | WS_VISIBLE,
-        20, 50, 120, 20,
+        LEFT_MARGIN, 55, 120, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hLabel2, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_breakDurationEdit = CreateWindow(L"EDIT", NULL,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        150, 50, 60, 20,
+        LEFT_MARGIN + 130, 55, 60, 25,
         hwnd, (HMENU)ID_BREAK_DURATION, GetModuleHandle(NULL), NULL);
+    SendMessage(s_breakDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    s_autoStartCheck = CreateWindow(L"BUTTON", L"����������",
+    s_autoStartCheck = CreateWindow(L"BUTTON", L"开机自启动",
         WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-        20, 80, 100, 20,
+        LEFT_MARGIN, 90, 150, 25,
         hwnd, (HMENU)ID_AUTO_START, GetModuleHandle(NULL), NULL);
+    SendMessage(s_autoStartCheck, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    // ������ʾ��༭��
-    CreateWindow(L"STATIC", L"��Ϣ��ʾ��:",
+    HWND hLabel3 = CreateWindow(L"STATIC", L"休息提示语:",
         WS_CHILD | WS_VISIBLE,
-        20, 110, 100, 20,
+        LEFT_MARGIN, 130, 100, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hLabel3, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_tipsEdit = CreateWindow(L"EDIT", NULL,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL,
-        20, 140, 460, 180,
+        LEFT_MARGIN, 160, CONTENT_WIDTH, 150,  // 使用计算的内容宽度
         hwnd, (HMENU)ID_TIPS_EDIT, GetModuleHandle(NULL), NULL);
+    SendMessage(s_tipsEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    // ������ť
-    CreateWindow(L"BUTTON", L"����",
+    // 调整按钮位置，增加右边距
+    const int BTN_WIDTH = 90;
+    const int BTN_HEIGHT = 30;
+    const int BTN_SPACING = 10;  // 按钮之间的间距
+    const int TOTAL_BTN_WIDTH = (BTN_WIDTH * 2) + BTN_SPACING;
+    const int BTN_START_X = WINDOW_WIDTH - RIGHT_MARGIN - TOTAL_BTN_WIDTH;
+
+    HWND hSaveBtn = CreateWindow(L"BUTTON", L"保存",
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        300, 330, 80, 25,
+        BTN_START_X, 350, BTN_WIDTH, BTN_HEIGHT,
         hwnd, (HMENU)ID_SAVE_BUTTON, GetModuleHandle(NULL), NULL);
+    SendMessage(hSaveBtn, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    CreateWindow(L"BUTTON", L"ȡ��",
+    HWND hCancelBtn = CreateWindow(L"BUTTON", L"取消",
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        400, 330, 80, 25,
+        BTN_START_X + BTN_WIDTH + BTN_SPACING, 350, BTN_WIDTH, BTN_HEIGHT,
         hwnd, (HMENU)ID_CANCEL_BUTTON, GetModuleHandle(NULL), NULL);
+    SendMessage(hCancelBtn, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    // ���õ�ǰֵ
+    // 设置当前值
     wchar_t buffer[16];
     _itow_s(g_appState.workDuration, buffer, 10);
     SetWindowText(s_workDurationEdit, buffer);
@@ -127,12 +152,15 @@ void Settings::CreateControls(HWND hwnd)
     SendMessage(s_autoStartCheck, BM_SETCHECK,
         g_appState.autoStart ? BST_CHECKED : BST_UNCHECKED, 0);
 
-    // ������ʾ��
-    SetWindowText(s_tipsEdit, L"����������������\r\n\r\n"
-        L"��ʱ���ƣ�����׵��´����ʧ��...\r\n\r\n"
-        L"�ʵ���Ϣ������߹���Ч��...\r\n\r\n"
-        L"վ�����һ�£������屣�ֻ���...\r\n\r\n"
-        L"�ǵö��ˮ����������׵...");
+    // 设置默认提示语
+    SetWindowText(s_tipsEdit,
+        L"护腰神器提醒您：长时间的疲劳容易导致错误和失误...\r\n\r\n"
+        L"适当休息可以提高工作效率...\r\n\r\n"
+        L"站起来活动一下，让身体保持活力...\r\n\r\n"
+        L"记得多喝水，保护好腰椎...");
+
+    // 注意：不要删除字体，因为控件还在使用它
+    // 字体会在窗口销毁时自动清理
 }
 
 LRESULT CALLBACK Settings::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -164,7 +192,7 @@ void Settings::SaveAndClose(HWND hwnd)
 {
     wchar_t buffer[1024];
 
-    // ��ȡ����ʱ��
+    // 获取工作时长
     GetWindowText(s_workDurationEdit, buffer, 16);
     int workDuration = _wtoi(buffer);
     if (workDuration > 0)
@@ -172,7 +200,7 @@ void Settings::SaveAndClose(HWND hwnd)
         g_appState.workDuration = workDuration;
     }
 
-    // ��ȡ��Ϣʱ��
+    // 获取休息时长
     GetWindowText(s_breakDurationEdit, buffer, 16);
     int breakDuration = _wtoi(buffer);
     if (breakDuration > 0)
@@ -180,7 +208,7 @@ void Settings::SaveAndClose(HWND hwnd)
         g_appState.breakDuration = breakDuration;
     }
 
-    // ��ȡ����������
+    // 获取自启动设置
     bool autoStart = SendMessage(s_autoStartCheck, BM_GETCHECK, 0, 0) == BST_CHECKED;
     if (autoStart != g_appState.autoStart)
     {
@@ -188,10 +216,10 @@ void Settings::SaveAndClose(HWND hwnd)
         SetAutoStart(autoStart);
     }
 
-    // ��������
+    // 保存设置
     SaveSettings();
 
-    // �رմ���
+    // 关闭窗口
     DestroyWindow(hwnd);
 }
 

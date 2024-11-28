@@ -1,4 +1,4 @@
-// About.h
+﻿// About.h
 #pragma once
 #include "main.h"
 

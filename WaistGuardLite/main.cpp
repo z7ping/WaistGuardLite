@@ -1,4 +1,4 @@
-// main.cpp
+ï»¿// main.cpp
 #include "main.h"
 #include "PreRestWindow.h"
 #include "Settings.h"
@@ -6,17 +6,17 @@
 #include "RestWindow.h"
 #include <strsafe.h>
 
-// È«¾Ö±äÁ¿¶¨Òå
+// å…¨å±€å˜é‡å®šä¹‰
 AppState g_appState = { 0 };
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-    // ³õÊ¼»¯Ä¬ÈÏÖµ
+    // åˆå§‹åŒ–é»˜è®¤å€¼
     g_appState.workDuration = 45;
     g_appState.breakDuration = 5;
-    Settings::LoadSettings();  // ¼ÓÔØ±£´æµÄÉèÖÃ
+    Settings::LoadSettings();  // åŠ è½½ä¿å­˜çš„è®¾ç½®
 
-    // ×¢²á´°¿ÚÀà
+    // æ³¨å†Œçª—å£ç±»
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
@@ -27,18 +27,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     RegisterClass(&wc);
 
-    // ´´½¨´°¿Ú
+    // åˆ›å»ºçª—å£
     g_appState.hwnd = CreateWindowEx(
-        0,                              // À©Õ¹´°¿ÚÑùÊ½
-        CLASS_NAME,                     // ´°¿ÚÀàÃû
-        WINDOW_TITLE,                   // ´°¿Ú±êÌâ
-        WS_OVERLAPPEDWINDOW,           // ´°¿ÚÑùÊ½
-        CW_USEDEFAULT, CW_USEDEFAULT,  // Î»ÖÃ
-        350, 200,                      // ´óĞ¡
-        NULL,                          // ¸¸´°¿Ú
-        NULL,                          // ²Ëµ¥
-        hInstance,                     // ÊµÀı¾ä±ú
-        NULL                           // ¸½¼ÓÊı¾İ
+        0,                              // æ‰©å±•çª—å£æ ·å¼
+        CLASS_NAME,                     // çª—å£ç±»å
+        WINDOW_TITLE,                   // çª—å£æ ‡é¢˜
+        WS_OVERLAPPEDWINDOW,           // çª—å£æ ·å¼
+        CW_USEDEFAULT, CW_USEDEFAULT,  // ä½ç½®
+        350, 200,                      // å¤§å°
+        NULL,                          // çˆ¶çª—å£
+        NULL,                          // èœå•
+        hInstance,                     // å®ä¾‹å¥æŸ„
+        NULL                           // é™„åŠ æ•°æ®
     );
 
     if (g_appState.hwnd == NULL)
@@ -46,7 +46,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return 0;
     }
 
-    // ¾ÓÖĞ´°¿Ú
+    // å±…ä¸­çª—å£
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
     RECT rect;
@@ -60,7 +60,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     ShowWindow(g_appState.hwnd, nCmdShow);
     UpdateWindow(g_appState.hwnd);
 
-    // ÏûÏ¢Ñ­»·
+    // æ¶ˆæ¯å¾ªç¯
     MSG msg = { 0 };
     while (GetMessage(&msg, NULL, 0, 0))
     {
@@ -77,7 +77,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        // ´´½¨ÍĞÅÌÍ¼±ê
+        // åˆ›å»ºæ‰˜ç›˜å›¾æ ‡
         ZeroMemory(&g_appState.nid, sizeof(NOTIFYICONDATA));
         g_appState.nid.cbSize = sizeof(NOTIFYICONDATA);
         g_appState.nid.hWnd = hwnd;
@@ -88,7 +88,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         StringCchCopy(g_appState.nid.szTip, ARRAYSIZE(g_appState.nid.szTip), WINDOW_TITLE);
         Shell_NotifyIcon(NIM_ADD, &g_appState.nid);
 
-        // ³õÊ¼»¯¶¨Ê±Æ÷
+        // åˆå§‹åŒ–å®šæ—¶å™¨
         GetSystemTime(&g_appState.startTime);
         g_appState.workTimer = SetTimer(hwnd, 1, g_appState.workDuration * 60 * 1000, NULL);
         g_appState.displayTimer = SetTimer(hwnd, 2, 1000, NULL);
@@ -101,22 +101,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        // ÉèÖÃÎÄ±¾ÑÕÉ«ºÍ±³¾°Ä£Ê½
+        // è®¾ç½®æ–‡æœ¬é¢œè‰²å’ŒèƒŒæ™¯æ¨¡å¼
         SetTextColor(hdc, RGB(51, 51, 51));
         SetBkMode(hdc, TRANSPARENT);
 
-        // ´´½¨×ÖÌå
+        // åˆ›å»ºå­—ä½“
         HFONT hFont = CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
         HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
 
-        // »ñÈ¡´°¿Ú¿Í»§Çø´óĞ¡
+        // è·å–çª—å£å®¢æˆ·åŒºå¤§å°
         RECT rect;
         GetClientRect(hwnd, &rect);
 
-        // ¼ÆËã¹¤×÷Ê±³¤
+        // è®¡ç®—å·¥ä½œæ—¶é•¿
         SYSTEMTIME currentTime;
         GetSystemTime(&currentTime);
         FILETIME ft1, ft2;
@@ -129,16 +129,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         u2.LowPart = ft2.dwLowDateTime;
         u2.HighPart = ft2.dwHighDateTime;
 
-        ULONGLONG diff = (u2.QuadPart - u1.QuadPart) / 10000000;  // ×ª»»ÎªÃë
+        ULONGLONG diff = (u2.QuadPart - u1.QuadPart) / 10000000;  // è½¬æ¢ä¸ºç§’
         int minutes = (int)(diff / 60);
         int seconds = (int)(diff % 60);
 
-        // »æÖÆÎÄ±¾
+        // ç»˜åˆ¶æ–‡æœ¬
         wchar_t text[64];
-        swprintf_s(text, L"ÒÑ¹¤×÷Ê±³¤£º%02d:%02d", minutes, seconds);
+        swprintf_s(text, L"å·²å·¥ä½œæ—¶é•¿ï¼š%02d:%02d", minutes, seconds);
         DrawText(hdc, text, -1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
-        // ÇåÀí
+        // æ¸…ç†
         SelectObject(hdc, hOldFont);
         DeleteObject(hFont);
 
@@ -150,15 +150,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         switch (wParam)
         {
-        case 1:  // ¹¤×÷¶¨Ê±Æ÷
+        case 1:  // å·¥ä½œå®šæ—¶å™¨
             if (!g_appState.isResting && !g_appState.isPreResting)
             {
-                PreRestWindow::Create(false);  // ÏÔÊ¾Ô¤ĞİÏ¢´°¿Ú
+                PreRestWindow::Create(false);  // æ˜¾ç¤ºé¢„ä¼‘æ¯çª—å£
             }
             break;
 
-        case 2:  // ÏÔÊ¾¶¨Ê±Æ÷
-            InvalidateRect(hwnd, NULL, TRUE);  // Ë¢ĞÂÏÔÊ¾
+        case 2:  // æ˜¾ç¤ºå®šæ—¶å™¨
+            InvalidateRect(hwnd, NULL, TRUE);  // åˆ·æ–°æ˜¾ç¤º
             break;
         }
         return 0;
@@ -171,13 +171,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             POINT pt;
             GetCursorPos(&pt);
             HMENU hMenu = CreatePopupMenu();
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_SHOW, L"ÏÔÊ¾Ö÷´°¿Ú");
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_REST, L"Á¢¼´ĞİÏ¢");
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_RESTART, L"ÖØĞÂ¼ÆÊ±");
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"ÉèÖÃ");
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_ABOUT, L"¹ØÓÚ");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_SHOW, L"æ˜¾ç¤ºä¸»çª—å£");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_REST, L"ç«‹å³ä¼‘æ¯");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_RESTART, L"é‡æ–°è®¡æ—¶");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"è®¾ç½®");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_ABOUT, L"å…³äº");
             AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, L"ÍË³ö");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, L"é€€å‡º");
 
             SetForegroundWindow(hwnd);
             TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
@@ -201,7 +201,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             break;
 
         case ID_TRAY_REST:
-            PreRestWindow::Create(true);  // ÊÖ¶¯´¥·¢ĞİÏ¢
+            PreRestWindow::Create(true);  // æ‰‹åŠ¨è§¦å‘ä¼‘æ¯
             break;
 
         case ID_TRAY_RESTART:
@@ -227,11 +227,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_CLOSE:
-        ShowWindow(hwnd, SW_HIDE);  // µã»÷¹Ø±Õ°´Å¥Ê±Òş²Ø´°¿Ú¶ø²»ÊÇÍË³ö
+        ShowWindow(hwnd, SW_HIDE);  // ç‚¹å‡»å…³é—­æŒ‰é’®æ—¶éšè—çª—å£è€Œä¸æ˜¯é€€å‡º
         return 0;
 
     case WM_DESTROY:
-        Shell_NotifyIcon(NIM_DELETE, &g_appState.nid);  // É¾³ıÍĞÅÌÍ¼±ê
+        Shell_NotifyIcon(NIM_DELETE, &g_appState.nid);  // åˆ é™¤æ‰˜ç›˜å›¾æ ‡
         PostQuitMessage(0);
         return 0;
     }

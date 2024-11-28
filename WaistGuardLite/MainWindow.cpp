@@ -1,18 +1,18 @@
-// src/MainWindow.cpp
+ï»¿// src/MainWindow.cpp
 #include "MainWindow.h"
 #include <strsafe.h>
 
 bool MainWindow::Create(HINSTANCE hInstance)
 {
-    // ³õÊ¼»¯Ó¦ÓÃ×´Ì¬
+    // åˆå§‹åŒ–åº”ç”¨çŠ¶æ€
     g_appState.workDuration = DEFAULT_WORK_MINUTES;
     g_appState.breakDuration = DEFAULT_BREAK_MINUTES;
     GetSystemTime(&g_appState.startTime);
 
-    // ´´½¨ÍĞÅÌÍ¼±ê
+    // åˆ›å»ºæ‰˜ç›˜å›¾æ ‡
     CreateTrayIcon();
 
-    // ³õÊ¼»¯¶¨Ê±Æ÷
+    // åˆå§‹åŒ–å®šæ—¶å™¨
     InitTimers();
 
     return true;
@@ -20,19 +20,19 @@ bool MainWindow::Create(HINSTANCE hInstance)
 
 void MainWindow::InitTimers()
 {
-    // ´´½¨¹¤×÷¶¨Ê±Æ÷
+    // åˆ›å»ºå·¥ä½œå®šæ—¶å™¨
     g_appState.workTimer = SetTimer(
         g_appState.hwnd,
         1,
-        g_appState.workDuration * 60 * 1000,  // ×ª»»ÎªºÁÃë
+        g_appState.workDuration * 60 * 1000,  // è½¬æ¢ä¸ºæ¯«ç§’
         WorkTimerProc
     );
 
-    // ´´½¨ÏÔÊ¾¶¨Ê±Æ÷
+    // åˆ›å»ºæ˜¾ç¤ºå®šæ—¶å™¨
     g_appState.displayTimer = SetTimer(
         g_appState.hwnd,
         2,
-        1000,  // 1Ãë¸üĞÂÒ»´Î
+        1000,  // 1ç§’æ›´æ–°ä¸€æ¬¡
         DisplayTimerProc
     );
 }
@@ -55,7 +55,7 @@ void MainWindow::UpdateWorkTime()
     SYSTEMTIME currentTime;
     GetSystemTime(&currentTime);
 
-    // ¼ÆËã¹¤×÷Ê±³¤
+    // è®¡ç®—å·¥ä½œæ—¶é•¿
     FILETIME ft1, ft2;
     SystemTimeToFileTime(&g_appState.startTime, &ft1);
     SystemTimeToFileTime(&currentTime, &ft2);
@@ -66,13 +66,13 @@ void MainWindow::UpdateWorkTime()
     u2.LowPart = ft2.dwLowDateTime;
     u2.HighPart = ft2.dwHighDateTime;
 
-    ULONGLONG diff = (u2.QuadPart - u1.QuadPart) / 10000000;  // ×ª»»ÎªÃë
+    ULONGLONG diff = (u2.QuadPart - u1.QuadPart) / 10000000;  // è½¬æ¢ä¸ºç§’
     int minutes = (int)(diff / 60);
     int seconds = (int)(diff % 60);
 
-    // ¸üĞÂÏÔÊ¾
+    // æ›´æ–°æ˜¾ç¤º
     wchar_t text[64];
-    StringCchPrintf(text, ARRAYSIZE(text), L"ÒÑ¹¤×÷Ê±³¤£º%d·ÖÖÓ%dÃë", minutes, seconds);
+    StringCchPrintf(text, ARRAYSIZE(text), L"å·²å·¥ä½œæ—¶é•¿ï¼š%dåˆ†é’Ÿ%dç§’", minutes, seconds);
     SetWindowText(g_appState.hwnd, text);
 }
 
@@ -92,28 +92,28 @@ void MainWindow::ShowRestWindow()
 {
     if (!g_appState.isResting && !g_appState.isPreResting)
     {
-        // ÏÈÏÔÊ¾Ô¤ĞİÏ¢´°¿Ú
+        // å…ˆæ˜¾ç¤ºé¢„ä¼‘æ¯çª—å£
         g_appState.isPreResting = true;
-        if (PreRestWindow::Create(false))  // false ±íÊ¾×Ô¶¯´¥·¢
+        if (PreRestWindow::Create(false))  // false è¡¨ç¤ºè‡ªåŠ¨è§¦å‘
         {
-            // Èç¹ûÓÃ»§Ã»ÓĞÑ¡ÔñÑÓ³Ù
+            // å¦‚æœç”¨æˆ·æ²¡æœ‰é€‰æ‹©å»¶è¿Ÿ
             if (!PreRestWindow::IsDelayed())
             {
-                // ÏÔÊ¾È«ÆÁĞİÏ¢´°¿Ú
+                // æ˜¾ç¤ºå…¨å±ä¼‘æ¯çª—å£
                 g_appState.isResting = true;
                 if (RestWindow::Create(g_appState.breakDuration))
                 {
-                    // ÖØÖÃ¼ÆÊ±
+                    // é‡ç½®è®¡æ—¶
                     GetSystemTime(&g_appState.startTime);
                 }
             }
             else
             {
-                // ÓÃ»§Ñ¡ÔñÑÓ³Ù£¬3·ÖÖÓºóÖØĞÂÌáĞÑ
+                // ç”¨æˆ·é€‰æ‹©å»¶è¿Ÿï¼Œ3åˆ†é’Ÿåé‡æ–°æé†’
                 g_appState.workTimer = SetTimer(
                     g_appState.hwnd,
-                    1,  // Ê¹ÓÃÔ­À´µÄ¹¤×÷¶¨Ê±Æ÷
-                    3 * 60 * 1000,  // 3·ÖÖÓ
+                    1,  // ä½¿ç”¨åŸæ¥çš„å·¥ä½œå®šæ—¶å™¨
+                    3 * 60 * 1000,  // 3åˆ†é’Ÿ
                     WorkTimerProc
                 );
             }
@@ -125,12 +125,12 @@ void MainWindow::ShowRestWindow()
 void MainWindow::ShowTrayMenu(HWND hwnd, POINT pt)
 {
     HMENU hMenu = CreatePopupMenu();
-    InsertMenu(hMenu, 0, MF_BYPOSITION | MF_STRING, IDM_TRAY_SHOW, L"ÏÔÊ¾Ö÷´°¿Ú");
-    InsertMenu(hMenu, 1, MF_BYPOSITION | MF_STRING, IDM_TRAY_REST, L"Á¢¼´ĞİÏ¢");
-    InsertMenu(hMenu, 2, MF_BYPOSITION | MF_STRING, IDM_TRAY_RESTART, L"ÖØĞÂ¼ÆÊ±");
-    InsertMenu(hMenu, 3, MF_BYPOSITION | MF_STRING, IDM_TRAY_SETTINGS, L"ÉèÖÃ");
-    InsertMenu(hMenu, 4, MF_BYPOSITION | MF_STRING, IDM_TRAY_ABOUT, L"¹ØÓÚ");
-    InsertMenu(hMenu, 5, MF_BYPOSITION | MF_STRING, IDM_TRAY_EXIT, L"ÍË³ö");
+    InsertMenu(hMenu, 0, MF_BYPOSITION | MF_STRING, IDM_TRAY_SHOW, L"æ˜¾ç¤ºä¸»çª—å£");
+    InsertMenu(hMenu, 1, MF_BYPOSITION | MF_STRING, IDM_TRAY_REST, L"ç«‹å³ä¼‘æ¯");
+    InsertMenu(hMenu, 2, MF_BYPOSITION | MF_STRING, IDM_TRAY_RESTART, L"é‡æ–°è®¡æ—¶");
+    InsertMenu(hMenu, 3, MF_BYPOSITION | MF_STRING, IDM_TRAY_SETTINGS, L"è®¾ç½®");
+    InsertMenu(hMenu, 4, MF_BYPOSITION | MF_STRING, IDM_TRAY_ABOUT, L"å…³äº");
+    InsertMenu(hMenu, 5, MF_BYPOSITION | MF_STRING, IDM_TRAY_EXIT, L"é€€å‡º");
 
     SetForegroundWindow(hwnd);
     TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);

@@ -1,4 +1,4 @@
-// About.cpp
+ï»¿// About.cpp
 #include "About.h"
 #include "resource.h"
 #include <strsafe.h>
@@ -11,26 +11,26 @@ bool About::Create(HWND parentHwnd)
     if (s_hwnd != NULL)
         return false;
 
-    // ×¢²á´°¿ÚÀà
+    // æ³¨å†Œçª—å£ç±»
     RegisterWindowClass(GetModuleHandle(NULL));
 
-    // ´´½¨´°¿Ú
+    // åˆ›å»ºçª—å£
     s_hwnd = CreateWindowEx(
-        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // À©Õ¹ÑùÊ½
-        CLASS_NAME,           // ´°¿ÚÀàÃû
-        L"¹ØÓÚ",             // ´°¿Ú±êÌâ
-        WS_POPUP | WS_CAPTION | WS_SYSMENU,  // ´°¿ÚÑùÊ½
-        0, 0,                // Î»ÖÃ
-        400, 300,           // ´óĞ¡
-        parentHwnd,          // ¸¸´°¿Ú
-        NULL,               // ²Ëµ¥
-        GetModuleHandle(NULL),  // ÊµÀı¾ä±ú
-        NULL                // ¸½¼ÓÊı¾İ
+        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // æ‰©å±•æ ·å¼
+        CLASS_NAME,           // çª—å£ç±»å
+        L"å…³äº",             // çª—å£æ ‡é¢˜
+        WS_POPUP | WS_CAPTION | WS_SYSMENU,  // çª—å£æ ·å¼
+        0, 0,                // ä½ç½®
+        400, 400,           // é«˜åº¦ä»450æ”¹ä¸º400ï¼Œå› ä¸ºå»æ‰äº†å…³é—­æŒ‰é’®
+        parentHwnd,          // çˆ¶çª—å£
+        NULL,               // èœå•
+        GetModuleHandle(NULL),  // å®ä¾‹å¥æŸ„
+        NULL                // é™„åŠ æ•°æ®
     );
 
     if (s_hwnd)
     {
-        // ¾ÓÖĞ´°¿Ú
+        // å±…ä¸­çª—å£
         int screenWidth = GetSystemMetrics(SM_CXSCREEN);
         int screenHeight = GetSystemMetrics(SM_CYSCREEN);
         RECT rect;
@@ -41,10 +41,10 @@ bool About::Create(HWND parentHwnd)
         int y = (screenHeight - windowHeight) / 2;
         SetWindowPos(s_hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 
-        // ´´½¨¿Ø¼ş
+        // åˆ›å»ºæ§ä»¶
         CreateControls(s_hwnd);
 
-        // ÏÔÊ¾´°¿Ú
+        // æ˜¾ç¤ºçª—å£
         ShowWindow(s_hwnd, SW_SHOW);
         UpdateWindow(s_hwnd);
         return true;
@@ -65,55 +65,93 @@ void About::RegisterWindowClass(HINSTANCE hInstance)
 
 void About::CreateControls(HWND hwnd)
 {
-    // ´´½¨Í¼±ê
+    // å®šä¹‰è¾¹è·å’Œé—´è·
+    const int LEFT_MARGIN = 30;
+    const int TOP_MARGIN = 25;
+    const int CONTENT_SPACING = 15;  // å†…å®¹ä¹‹é—´çš„å‚ç›´é—´è·
+    const int WINDOW_WIDTH = 400;
+    const int CONTENT_WIDTH = WINDOW_WIDTH - (LEFT_MARGIN * 2);
+
+    // åˆ›å»ºæ ‡é¢˜å­—ä½“ï¼ˆç¨å¤§ä¸€ç‚¹ï¼‰
+    HFONT hTitleFont = CreateFont(22, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    // åˆ›å»ºæ™®é€šæ–‡æœ¬å­—ä½“
+    HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+
+    int currentY = TOP_MARGIN;
+
+    // åˆ›å»ºå›¾æ ‡
     HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
     if (hIcon)
     {
         HWND hIconCtrl = CreateWindow(L"STATIC", NULL,
             WS_CHILD | WS_VISIBLE | SS_ICON,
-            20, 20, 32, 32,
+            LEFT_MARGIN, currentY, 32, 32,
             hwnd, NULL, GetModuleHandle(NULL), NULL);
         SendMessage(hIconCtrl, STM_SETICON, (WPARAM)hIcon, 0);
     }
 
-    // ´´½¨ÎÄ±¾
-    CreateWindow(L"STATIC", L"»¤ÑüÉñÆ÷ v1.0",
+    // æ ‡é¢˜ä½¿ç”¨å¤§ä¸€ç‚¹çš„å­—ä½“
+    HWND hTitle = CreateWindow(L"STATIC", L"æŠ¤è…°ç¥å™¨ v1.0",
         WS_CHILD | WS_VISIBLE,
-        70, 20, 200, 20,
+        LEFT_MARGIN + 40, currentY + 5, 200, 25,  // å›¾æ ‡å³ä¾§5åƒç´ å¯¹é½
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hTitle, WM_SETFONT, (WPARAM)hTitleFont, TRUE);
 
-    CreateWindow(L"STATIC", L"ÎªÄúµÄ½¡¿µ±£¼İ»¤º½£¡",
+    currentY += 45;  // æ ‡é¢˜åŒºåŸŸé«˜åº¦
+
+    // æ ‡è¯­
+    HWND hSlogan = CreateWindow(L"STATIC", L"ä¸ºæ‚¨çš„å¥åº·ä¿é©¾æŠ¤èˆªï¼",
         WS_CHILD | WS_VISIBLE,
-        70, 50, 200, 20,
+        LEFT_MARGIN, currentY, CONTENT_WIDTH, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hSlogan, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    CreateWindow(L"STATIC", L"Powered by ³ÌĞòÔ±ÆßÆ½",
+    currentY += 35;  // æ ‡è¯­åé—´è·å¤§ä¸€ç‚¹
+
+    // ä½œè€…ä¿¡æ¯
+    HWND hAuthor = CreateWindow(L"STATIC", L"Powered by ç¨‹åºå‘˜ä¸ƒå¹³",
         WS_CHILD | WS_VISIBLE,
-        70, 80, 200, 20,
+        LEFT_MARGIN, currentY, CONTENT_WIDTH, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hAuthor, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    CreateWindow(L"STATIC", L"ÁªÏµ·½Ê½£ºÉ¨Âë¹Ø×¢Î¢ĞÅ¹«ÖÚºÅ£º",
-        WS_CHILD | WS_VISIBLE,
-        20, 120, 360, 20,
+    currentY += 40;  // ä½œè€…ä¿¡æ¯åé—´è·å¤§ä¸€ç‚¹
+
+    // è”ç³»æ–¹å¼
+    HWND hContact = CreateWindow(L"STATIC", L"è”ç³»æ–¹å¼ï¼šæ‰«ç å…³æ³¨å¾®ä¿¡å…¬ä¼—å·",
+        WS_CHILD | WS_VISIBLE | SS_CENTER,  // å±…ä¸­å¯¹é½
+        LEFT_MARGIN, currentY, CONTENT_WIDTH, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hContact, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    // ´´½¨¶şÎ¬ÂëÍ¼Æ¬
+    currentY += 30;
+
+    // äºŒç»´ç å±…ä¸­æ˜¾ç¤º
+    const int QR_SIZE = 160;
+    const int QR_X = (WINDOW_WIDTH - QR_SIZE) / 2;
     HWND hQRCode = CreateWindow(L"STATIC", NULL,
         WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE,
-        140, 150, 120, 120,  // ¾ÓÖĞÏÔÊ¾ // Î»ÖÃºÍ´óĞ¡
+        QR_X, currentY, QR_SIZE, QR_SIZE,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
 
-    // ¼ÓÔØ¶şÎ¬ÂëÍ¼Æ¬
+    // åŠ è½½äºŒç»´ç å›¾ç‰‡
     HBITMAP hBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
-        MAKEINTRESOURCE(IDB_QRCODE),  // ĞèÒªÔÚ×ÊÔ´ÎÄ¼şÖĞ¶¨Òå
+        MAKEINTRESOURCE(IDB_QRCODE),
         IMAGE_BITMAP,
-        120, 120,  // ÆÚÍûµÄ´óĞ¡
+        QR_SIZE, QR_SIZE,
         LR_DEFAULTCOLOR);
 
     if (hBitmap)
     {
         SendMessage(hQRCode, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
     }
+
+    currentY += QR_SIZE + 30;  // äºŒç»´ç ä¸‹æ–¹ç•™å‡ºè¶³å¤Ÿç©ºé—´
 }
 
 LRESULT CALLBACK About::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
