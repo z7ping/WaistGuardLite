@@ -14,6 +14,7 @@ const wchar_t WINDOW_TITLE[] = L"护腰神器 v1.0";
 // 默认时长设置
 #define DEFAULT_WORK_MINUTES  45   // 默认工作时长
 #define DEFAULT_BREAK_MINUTES 5    // 默认休息时长
+#define DEFAULT_DELAY_MINUTES 3    // 默认延迟时长
 
 // 托盘菜单命令
 #define WM_TRAYICON (WM_USER + 1)
@@ -29,7 +30,7 @@ struct AppState {
     HWND hwnd;              // 主窗口句柄
     UINT_PTR workTimer;     // 工作定时器
     UINT_PTR displayTimer;  // 显示定时器
-    SYSTEMTIME startTime;   // 开始时间
+    ULONGLONG startTick;    // 开始时间戳
     bool isResting;         // 是否在休息
     bool isPreResting;      // 是否在预休息
     int workDuration;       // 工作时长（分钟）

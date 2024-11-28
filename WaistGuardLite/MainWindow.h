@@ -9,11 +9,11 @@
 #include "TimerManager.h"
 #include <windows.h>
 #include <shellapi.h>
-#include <shlwapi.h>  // 添加这行用于 PathRemoveFileSpec 和 PathAppend
-#include <exception>  // 添加这行用于 std::exception
-#include <commctrl.h>  // 添加这行，用于状态栏控件
-#pragma comment(lib, "comctl32.lib")  // 链接comctl32库
-#pragma comment(lib, "shlwapi.lib")  // 链接 shlwapi.lib
+#include <shlwapi.h>
+#include <exception>
+#include <commctrl.h>
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "shlwapi.lib")
 
 class MainWindow {
 public:
@@ -38,4 +38,8 @@ private:
     static void StartTimer();
     static void StopTimer();
     static HWND hStatus;  // 添加状态栏句柄
+    static void HandlePowerBroadcast(WPARAM wParam);
+    static void HandleDisplayChange();
+    static bool IsFullScreenAppRunning();
+    static bool IsOnBatteryPower();
 };

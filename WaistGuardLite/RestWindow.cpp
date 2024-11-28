@@ -224,31 +224,15 @@ void RestWindow::Close()
     }
 }
 
-// 添加全局变量
-HHOOK g_keyboardHook = NULL;
-LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-    if (nCode >= 0)
-    {
-        return 1; // 阻止所有键盘输入
-    }
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
-}
-
-// RestWindow.cpp 中的键盘禁用功能
 void RestWindow::DisableKeyboard()
 {
-    g_keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc,
-        GetModuleHandle(NULL), 0);
+    // 使用更温和的方式：设置窗口置顶和全屏
+    SetWindowPos(s_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 void RestWindow::EnableKeyboard()
 {
-    if (g_keyboardHook)
-    {
-        UnhookWindowsHookEx(g_keyboardHook);
-        g_keyboardHook = NULL;
-    }
+    // 不需要做任何事情
 }
 
 void RestWindow::SetTimerCallbacks(TimerCallback workProc, TimerCallback displayProc)

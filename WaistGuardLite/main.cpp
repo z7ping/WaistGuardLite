@@ -13,9 +13,10 @@ AppState g_appState = { 0 };
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     // 初始化默认值
-    g_appState.workDuration = 45;
-    g_appState.breakDuration = 5;
-    g_appState.delayDuration = 3;  // 默认延迟时长为3分钟
+    g_appState.workDuration = DEFAULT_WORK_MINUTES;
+    g_appState.breakDuration = DEFAULT_BREAK_MINUTES;
+    g_appState.delayDuration = DEFAULT_DELAY_MINUTES;
+    g_appState.startTick = GetTickCount64();  // 使用 GetTickCount64 初始化
     Settings::LoadSettings();  // 加载保存的设置
 
     // 注册窗口类

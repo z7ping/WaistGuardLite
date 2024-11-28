@@ -1,4 +1,4 @@
-// RestWindow.h
+﻿// RestWindow.h
 #pragma once
 #include "main.h"
 #include "TimerManager.h"
