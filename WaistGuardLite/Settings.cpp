@@ -76,11 +76,15 @@ void Settings::RegisterWindowClass(HINSTANCE hInstance)
 
 void Settings::CreateControls(HWND hwnd)
 {
-    // 设置左右边距
-    const int LEFT_MARGIN = 30;  // 左边距从20改为30
-    const int RIGHT_MARGIN = 30; // 新增右边距
-    const int WINDOW_WIDTH = 500; // 窗口总宽度
-    const int CONTENT_WIDTH = WINDOW_WIDTH - LEFT_MARGIN - RIGHT_MARGIN; // 内容区域宽度
+    // 设置左右边距和位置常量
+    const int LEFT_MARGIN = 30;
+    const int RIGHT_MARGIN = 30;
+    const int WINDOW_WIDTH = 500;
+    const int CONTENT_WIDTH = WINDOW_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
+    const int FIRST_CONTROL_Y = 20;  // 第一个控件的Y坐标
+    const int LABEL_WIDTH = 120;
+    const int EDIT_WIDTH = 60;
+    const int CONTROL_HEIGHT = 25;
 
     // 创建统一字体
     HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
@@ -90,13 +94,13 @@ void Settings::CreateControls(HWND hwnd)
     // 创建标签和输入框
     HWND hLabel1 = CreateWindow(L"STATIC", L"工作时长(分钟):",
         WS_CHILD | WS_VISIBLE,
-        LEFT_MARGIN, 20, 120, 25,
+        LEFT_MARGIN, FIRST_CONTROL_Y, LABEL_WIDTH, CONTROL_HEIGHT,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     SendMessage(hLabel1, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_workDurationEdit = CreateWindow(L"EDIT", NULL,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        LEFT_MARGIN + 130, 20, 60, 25,
+        LEFT_MARGIN + LABEL_WIDTH + 10, FIRST_CONTROL_Y, EDIT_WIDTH, CONTROL_HEIGHT,
         hwnd, (HMENU)ID_WORK_DURATION, GetModuleHandle(NULL), NULL);
     SendMessage(s_workDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
@@ -143,9 +147,9 @@ void Settings::CreateControls(HWND hwnd)
     SendMessage(s_tipsEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     // 在工作时长输入框右侧添加二维码
-    const int QR_SIZE = 120;  // 二维码大小
-    const int QR_X = WINDOW_WIDTH - RIGHT_MARGIN - QR_SIZE;  // 二维码右对齐
-    const int QR_Y = 20;  // 二维码Y坐标
+    const int QR_SIZE = 120;
+    const int QR_X = WINDOW_WIDTH - RIGHT_MARGIN - QR_SIZE;
+    const int QR_Y = FIRST_CONTROL_Y;  // 使用相同的Y坐标
 
     // 创建二维码图片控件
     HWND hQRCode = CreateWindow(L"STATIC", NULL,
