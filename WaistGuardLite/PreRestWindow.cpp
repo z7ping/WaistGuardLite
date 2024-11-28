@@ -11,18 +11,19 @@ const wchar_t PreRestWindow::PRE_REST_WINDOW_CLASS[] = L"WaistGuardLitePreRest";
 
 void PreRestWindow::CreateControls(HWND hwnd)
 {
-    // 定义边距和间距
+    // 统一控件尺寸和间距
     const int LEFT_MARGIN = 30;
-    const int TOP_MARGIN = 25;
     const int WINDOW_WIDTH = 400;
     const int CONTENT_WIDTH = WINDOW_WIDTH - (LEFT_MARGIN * 2);
+    const int BTN_WIDTH = 100;
+    const int BTN_HEIGHT = 30;
 
     // 创建统一字体
-    HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+    HFONT hFont = CreateFont(17, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
         CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
-    int currentY = TOP_MARGIN;
+    int currentY = 25;
 
     // 创建图标
     HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
@@ -36,8 +37,6 @@ void PreRestWindow::CreateControls(HWND hwnd)
     }
 
     // 创建延迟按钮
-    const int BTN_WIDTH = 90;
-    const int BTN_HEIGHT = 30;
     const int BTN_X = (WINDOW_WIDTH - BTN_WIDTH) / 2;
     const int BTN_Y = 120;
 
@@ -119,9 +118,9 @@ void PreRestWindow::RegisterWindowClass(HINSTANCE hInstance)
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = PRE_REST_WINDOW_CLASS;
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WAISTGUARDLITE));  // 添加图标
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);  // 添加鼠标指针
+    wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);  // 使用统一背景色
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     RegisterClass(&wc);
 }
 

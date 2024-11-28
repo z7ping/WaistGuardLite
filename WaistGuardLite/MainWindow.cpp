@@ -11,7 +11,7 @@ bool MainWindow::Create(HINSTANCE hInstance)
     wc.lpszClassName = CLASS_NAME;
     wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);
     RegisterClass(&wc);
 
     // 创建窗口
@@ -301,7 +301,7 @@ LRESULT CALLBACK MainWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         int seconds = (int)(diff % 60);
 
         // 创建字体
-        HFONT hFont = CreateFont(28, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        HFONT hFont = CreateFont(32, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,  // 增大字体
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
@@ -342,6 +342,17 @@ LRESULT CALLBACK MainWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     case WM_CLOSE:
         ShowWindow(hwnd, SW_HIDE);  // 点击关闭按钮时隐藏窗口而不是退出
         return 0;
+
+    case WM_ERASEBKGND:
+    {
+        HDC hdc = (HDC)wParam;
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        HBRUSH hBrush = CreateSolidBrush(APP_BG_COLOR);
+        FillRect(hdc, &rect, hBrush);
+        DeleteObject(hBrush);
+        return TRUE;
+    }
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);

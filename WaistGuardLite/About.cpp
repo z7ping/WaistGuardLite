@@ -59,7 +59,7 @@ void About::RegisterWindowClass(HINSTANCE hInstance)
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);  // 使用统一背景色
     RegisterClass(&wc);
 }
 

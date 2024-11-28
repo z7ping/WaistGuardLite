@@ -70,86 +70,110 @@ void Settings::RegisterWindowClass(HINSTANCE hInstance)
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);  // 使用统一背景色
     RegisterClass(&wc);
 }
 
 void Settings::CreateControls(HWND hwnd)
 {
-    // 设置左右边距和位置常量
+    // 统一控件尺寸和间距
     const int LEFT_MARGIN = 30;
     const int RIGHT_MARGIN = 30;
     const int WINDOW_WIDTH = 500;
     const int CONTENT_WIDTH = WINDOW_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
-    const int FIRST_CONTROL_Y = 20;  // 第一个控件的Y坐标
-    const int LABEL_WIDTH = 120;
-    const int EDIT_WIDTH = 60;
+    const int CONTROL_SPACING = 35;  // 减小控件间距
+    const int FIRST_CONTROL_Y = 30;  // 顶部间距
+    const int LABEL_WIDTH = 150;     // 标签宽度
+    const int EDIT_WIDTH = 100;      // 增加编辑框宽度
     const int CONTROL_HEIGHT = 25;
+    const int LABEL_EDIT_SPACING = 10;
+    const int QR_SIZE = 120;
 
     // 创建统一字体
     HFONT hFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
         CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
-    // 创建标签和输入框
+    // 第一行：工作时长
+    int currentY = FIRST_CONTROL_Y;
     HWND hLabel1 = CreateWindow(L"STATIC", L"工作时长(分钟):",
-        WS_CHILD | WS_VISIBLE,
-        LEFT_MARGIN, FIRST_CONTROL_Y, LABEL_WIDTH, CONTROL_HEIGHT,
+        WS_CHILD | WS_VISIBLE | SS_LEFT,  // 左对齐
+        LEFT_MARGIN, currentY + 2, LABEL_WIDTH, CONTROL_HEIGHT,  // 微调垂直位置
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     SendMessage(hLabel1, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_workDurationEdit = CreateWindow(L"EDIT", NULL,
-        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        LEFT_MARGIN + LABEL_WIDTH + 10, FIRST_CONTROL_Y, EDIT_WIDTH, CONTROL_HEIGHT,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_LEFT,  // 左对齐
+        LEFT_MARGIN + LABEL_WIDTH + LABEL_EDIT_SPACING, currentY, EDIT_WIDTH, CONTROL_HEIGHT,
         hwnd, (HMENU)ID_WORK_DURATION, GetModuleHandle(NULL), NULL);
     SendMessage(s_workDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
+    // 第二行：休息时长
+    currentY += CONTROL_SPACING;
     HWND hLabel2 = CreateWindow(L"STATIC", L"休息时长(分钟):",
-        WS_CHILD | WS_VISIBLE,
-        LEFT_MARGIN, 55, 120, 25,
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        LEFT_MARGIN, currentY + 2, LABEL_WIDTH, CONTROL_HEIGHT,  // 微调垂直位置
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     SendMessage(hLabel2, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_breakDurationEdit = CreateWindow(L"EDIT", NULL,
-        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        LEFT_MARGIN + 130, 55, 60, 25,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_LEFT,  // 左对齐
+        LEFT_MARGIN + LABEL_WIDTH + LABEL_EDIT_SPACING, currentY, EDIT_WIDTH, CONTROL_HEIGHT,
         hwnd, (HMENU)ID_BREAK_DURATION, GetModuleHandle(NULL), NULL);
     SendMessage(s_breakDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
+    // 第三行：延迟休息时长
+    currentY += CONTROL_SPACING;
     HWND hLabel3 = CreateWindow(L"STATIC", L"延迟休息时长(分钟):",
-        WS_CHILD | WS_VISIBLE,
-        LEFT_MARGIN, 90, 120, 25,
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        LEFT_MARGIN, currentY + 2, LABEL_WIDTH, CONTROL_HEIGHT,  // 微调垂直位置
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     SendMessage(hLabel3, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     s_delayDurationEdit = CreateWindow(L"EDIT", NULL,
-        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        LEFT_MARGIN + 130, 90, 60, 25,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER | ES_LEFT,  // 左对齐
+        LEFT_MARGIN + LABEL_WIDTH + LABEL_EDIT_SPACING, currentY, EDIT_WIDTH, CONTROL_HEIGHT,
         hwnd, (HMENU)ID_DELAY_DURATION, GetModuleHandle(NULL), NULL);
     SendMessage(s_delayDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    s_autoStartCheck = CreateWindow(L"BUTTON", L"开机自启动",
-        WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-        LEFT_MARGIN, 130, 150, 25,
-        hwnd, (HMENU)ID_AUTO_START, GetModuleHandle(NULL), NULL);
-    SendMessage(s_autoStartCheck, WM_SETFONT, (WPARAM)hFont, TRUE);
-
-    HWND hLabel4 = CreateWindow(L"STATIC", L"休息提示语:",
-        WS_CHILD | WS_VISIBLE,
-        LEFT_MARGIN, 160, 100, 25,
+    // 第四行：开机自启动
+    currentY += CONTROL_SPACING;
+    HWND hLabel4 = CreateWindow(L"STATIC", L"开机自启动:",
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        LEFT_MARGIN, currentY + 2, LABEL_WIDTH, CONTROL_HEIGHT,  // 微调垂直位置
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     SendMessage(hLabel4, WM_SETFONT, (WPARAM)hFont, TRUE);
 
+    s_autoStartCheck = CreateWindow(L"BUTTON", L"启用",
+        WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+        LEFT_MARGIN + LABEL_WIDTH + LABEL_EDIT_SPACING, currentY + 2, 60, CONTROL_HEIGHT,
+        hwnd, (HMENU)ID_AUTO_START, GetModuleHandle(NULL), NULL);
+    SendMessage(s_autoStartCheck, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+    // 第五行：休息提示语
+    currentY += CONTROL_SPACING;
+    HWND hLabel5 = CreateWindow(L"STATIC", L"休息提示语:",
+        WS_CHILD | WS_VISIBLE | SS_LEFT,
+        LEFT_MARGIN, currentY + 2, LABEL_WIDTH, CONTROL_HEIGHT,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hLabel5, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+    currentY += CONTROL_HEIGHT + 5;  // 减小标签和文本框之间的间距
     s_tipsEdit = CreateWindow(L"EDIT", NULL,
-        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL,
-        LEFT_MARGIN, 190, CONTENT_WIDTH, 150,  // 使用计算的内容宽度
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_LEFT,
+        LEFT_MARGIN, currentY, WINDOW_WIDTH - LEFT_MARGIN - RIGHT_MARGIN, 150,  // 使用窗口宽度减去左右边距
         hwnd, (HMENU)ID_TIPS_EDIT, GetModuleHandle(NULL), NULL);
     SendMessage(s_tipsEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    // 在工作时长输入框右侧添加二维码
-    const int QR_SIZE = 120;
+    // 二维码部分
     const int QR_X = WINDOW_WIDTH - RIGHT_MARGIN - QR_SIZE;
-    const int QR_Y = FIRST_CONTROL_Y;  // 使用相同的Y坐标
+    const int QR_Y = FIRST_CONTROL_Y;
+
+    // 创建二维码边框
+    HWND hQRBorder = CreateWindow(L"STATIC", NULL,
+        WS_CHILD | WS_VISIBLE | SS_ETCHEDFRAME,  // 添加边框样式
+        QR_X - 1, QR_Y - 1, QR_SIZE + 2, QR_SIZE + 2,  // 边框比图片大2个像素
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
 
     // 创建二维码图片控件
     HWND hQRCode = CreateWindow(L"STATIC", NULL,
@@ -172,26 +196,32 @@ void Settings::CreateControls(HWND hwnd)
         WS_CHILD | WS_VISIBLE | SS_CENTER,
         QR_X, QR_Y + QR_SIZE + 5, QR_SIZE, 20,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
-    SendMessage(hQRText, WM_SETFONT, (WPARAM)hFont, TRUE);
+    SendMessage(hQRText, WM_SETFONT, (WPARAM)hFont, TRUE);  // 使用普通字体
+
+    // 按钮使用稍大的字体
+    HFONT hBtnFont = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
     // 调整按钮位置，增加右边距
     const int BTN_WIDTH = 90;
     const int BTN_HEIGHT = 30;
-    const int BTN_SPACING = 10;  // 按钮之间的间距
+    const int BTN_SPACING = 10;
     const int TOTAL_BTN_WIDTH = (BTN_WIDTH * 2) + BTN_SPACING;
     const int BTN_START_X = WINDOW_WIDTH - RIGHT_MARGIN - TOTAL_BTN_WIDTH;
+    const int BTN_Y = currentY + 160;  // 按钮放在文本框下方
 
     HWND hSaveBtn = CreateWindow(L"BUTTON", L"保存",
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        BTN_START_X, 350, BTN_WIDTH, BTN_HEIGHT,
+        BTN_START_X, BTN_Y, BTN_WIDTH, BTN_HEIGHT,
         hwnd, (HMENU)ID_SAVE_BUTTON, GetModuleHandle(NULL), NULL);
-    SendMessage(hSaveBtn, WM_SETFONT, (WPARAM)hFont, TRUE);
+    SendMessage(hSaveBtn, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
 
     HWND hCancelBtn = CreateWindow(L"BUTTON", L"取消",
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        BTN_START_X + BTN_WIDTH + BTN_SPACING, 350, BTN_WIDTH, BTN_HEIGHT,
+        BTN_START_X + BTN_WIDTH + BTN_SPACING, BTN_Y, BTN_WIDTH, BTN_HEIGHT,
         hwnd, (HMENU)ID_CANCEL_BUTTON, GetModuleHandle(NULL), NULL);
-    SendMessage(hCancelBtn, WM_SETFONT, (WPARAM)hFont, TRUE);
+    SendMessage(hCancelBtn, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
 
     // 设置当前值
     wchar_t buffer[16];

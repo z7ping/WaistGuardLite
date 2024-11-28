@@ -8,6 +8,9 @@
 const wchar_t CLASS_NAME[] = L"WaistGuardLite";
 const wchar_t WINDOW_TITLE[] = L"护腰神器 v1.0";
 
+// 添加在常量定义部分
+#define APP_BG_COLOR RGB(240, 240, 240)  // 统一的背景色
+
 // 默认时长设置
 #define DEFAULT_WORK_MINUTES  45   // 默认工作时长
 #define DEFAULT_BREAK_MINUTES 5    // 默认休息时长

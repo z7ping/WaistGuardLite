@@ -61,7 +61,7 @@ bool RestWindow::Create(int duration)
         s_hwnd, (HMENU)ID_SKIP_REST, GetModuleHandle(NULL), NULL);
 
     // 设置按钮字体
-    HFONT hBtnFont = CreateFont(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+    HFONT hBtnFont = CreateFont(17, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
         CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
     SendMessage(hSkipBtn, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
@@ -94,7 +94,7 @@ void RestWindow::RegisterWindowClass(HINSTANCE hInstance)
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = REST_WINDOW_CLASS;
-    wc.hbrBackground = CreateSolidBrush(RGB(240, 240, 240));
+    wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);
     RegisterClass(&wc);
 }
 
