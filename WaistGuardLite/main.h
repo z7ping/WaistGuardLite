@@ -31,6 +31,7 @@ struct AppState {
     bool isPreResting;      // 是否在预休息
     int workDuration;       // 工作时长（分钟）
     int breakDuration;      // 休息时长（分钟）
+    int delayDuration;      // 延迟休息时长（分钟）
     bool autoStart;         // 开机自启动
     NOTIFYICONDATA nid;     // 托盘图标数据
 };

@@ -1,11 +1,18 @@
 ﻿// RestWindow.cpp
 #include "RestWindow.h"
+#include "MainWindow.h"
 #include <strsafe.h>
 
+// 定义静态成员变量
 HWND RestWindow::s_hwnd = NULL;
 int RestWindow::s_remainingSeconds = 0;
 UINT_PTR RestWindow::s_timer = 0;
 int RestWindow::s_currentTipIndex = 0;
+RestWindow::TimerCallback RestWindow::s_workTimerProc = NULL;
+RestWindow::TimerCallback RestWindow::s_displayTimerProc = NULL;
+
+// 定义窗口类名
+const wchar_t REST_WINDOW_CLASS[] = L"WaistGuardLiteRest";
 
 // 休息提示语
 const wchar_t* RestWindow::s_tips[] = {
@@ -27,7 +34,7 @@ bool RestWindow::Create(int duration)
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    // 创建全屏窗口
+    // 创建屏窗口
     s_hwnd = CreateWindowEx(
         WS_EX_TOPMOST,           // 总在最前
         REST_WINDOW_CLASS,       // 窗口类名
@@ -41,22 +48,43 @@ bool RestWindow::Create(int duration)
         NULL                    // 附加数据
     );
 
+    // 创建跳过按钮
+    const int BTN_WIDTH = 120;
+    const int BTN_HEIGHT = 35;
+    const int BTN_MARGIN_BOTTOM = 150;
+
+    HWND hSkipBtn = CreateWindow(L"BUTTON", L"跳过此次休息",
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        (screenWidth - BTN_WIDTH) / 2,  // 居中放置
+        screenHeight - BTN_HEIGHT - BTN_MARGIN_BOTTOM,  // 从底部向上150像素
+        BTN_WIDTH, BTN_HEIGHT,
+        s_hwnd, (HMENU)ID_SKIP_REST, GetModuleHandle(NULL), NULL);
+
+    // 设置按钮字体
+    HFONT hBtnFont = CreateFont(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
+    SendMessage(hSkipBtn, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
+
+
     if (s_hwnd)
     {
         // 初始化
         s_remainingSeconds = duration * 60;
         s_currentTipIndex = 0;
+        
+        // 禁用键盘
+        DisableKeyboard();
+        
+        // 创建定时器
         s_timer = SetTimer(s_hwnd, 1, 1000, TimerProc);
 
         // 显示窗口
         ShowWindow(s_hwnd, SW_SHOW);
         UpdateWindow(s_hwnd);
 
-        // 禁用键盘
-        DisableKeyboard();
         return true;
     }
-
     return false;
 }
 
@@ -84,17 +112,17 @@ LRESULT CALLBACK RestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
         SetBkMode(hdc, TRANSPARENT);
 
         // 创建标题字体
-        HFONT hTitleFont = CreateFont(28, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        HFONT hTitleFont = CreateFont(32, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
         // 创建倒计时字体
-        HFONT hCountdownFont = CreateFont(72, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        HFONT hCountdownFont = CreateFont(96, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
         // 创建提示文本字体
-        HFONT hTipsFont = CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        HFONT hTipsFont = CreateFont(28, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
 
@@ -140,6 +168,13 @@ LRESULT CALLBACK RestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
     case WM_SYSKEYDOWN:
     case WM_SYSKEYUP:
         return 0;  // 忽略所有键盘输入
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == ID_SKIP_REST)
+        {
+            Close();  // 直接调用 Close 函数处理所有清理工作
+        }
+        return 0;
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -150,7 +185,7 @@ VOID CALLBACK RestWindow::TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWOR
     s_remainingSeconds--;
     if (s_remainingSeconds <= 0)
     {
-        Close();
+        Close();  // 只在 Close 中处理重置逻辑
         return;
     }
 
@@ -166,10 +201,26 @@ void RestWindow::Close()
 {
     if (s_hwnd)
     {
+        // 停止计时器
         KillTimer(s_hwnd, s_timer);
+
+        // 启用键盘
         EnableKeyboard();
+
+        // 销毁窗口
         DestroyWindow(s_hwnd);
         s_hwnd = NULL;
+
+        // 重置状态
+        g_appState.isResting = false;
+        g_appState.isPreResting = false;
+
+        // 使用 TimerManager 重置计时器
+        TimerManager::RestartTimer();
+
+        // 更新托盘图标状态
+        StringCchCopy(g_appState.nid.szTip, ARRAYSIZE(g_appState.nid.szTip), WINDOW_TITLE);
+        Shell_NotifyIcon(NIM_MODIFY, &g_appState.nid);
     }
 }
 
@@ -198,4 +249,10 @@ void RestWindow::EnableKeyboard()
         UnhookWindowsHookEx(g_keyboardHook);
         g_keyboardHook = NULL;
     }
+}
+
+void RestWindow::SetTimerCallbacks(TimerCallback workProc, TimerCallback displayProc)
+{
+    s_workTimerProc = workProc;
+    s_displayTimerProc = displayProc;
 }

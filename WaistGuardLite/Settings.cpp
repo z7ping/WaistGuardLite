@@ -1,10 +1,12 @@
 ﻿// Settings.cpp
 #include "Settings.h"
+#include "MainWindow.h"
 #include <strsafe.h>
 
 HWND Settings::s_hwnd = NULL;
 HWND Settings::s_workDurationEdit = NULL;
 HWND Settings::s_breakDurationEdit = NULL;
+HWND Settings::s_delayDurationEdit = NULL;
 HWND Settings::s_autoStartCheck = NULL;
 HWND Settings::s_tipsEdit = NULL;
 const wchar_t Settings::CLASS_NAME[] = L"WaistGuardLiteSettings";
@@ -33,6 +35,12 @@ bool Settings::Create(HWND parentHwnd)
 
     if (s_hwnd)
     {
+        // 禁用父窗口
+        if (parentHwnd)
+        {
+            EnableWindow(parentHwnd, FALSE);
+        }
+
         // 居中窗口
         int screenWidth = GetSystemMetrics(SM_CXSCREEN);
         int screenHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -104,23 +112,63 @@ void Settings::CreateControls(HWND hwnd)
         hwnd, (HMENU)ID_BREAK_DURATION, GetModuleHandle(NULL), NULL);
     SendMessage(s_breakDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    s_autoStartCheck = CreateWindow(L"BUTTON", L"开机自启动",
-        WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-        LEFT_MARGIN, 90, 150, 25,
-        hwnd, (HMENU)ID_AUTO_START, GetModuleHandle(NULL), NULL);
-    SendMessage(s_autoStartCheck, WM_SETFONT, (WPARAM)hFont, TRUE);
-
-    HWND hLabel3 = CreateWindow(L"STATIC", L"休息提示语:",
+    HWND hLabel3 = CreateWindow(L"STATIC", L"延迟休息时长(分钟):",
         WS_CHILD | WS_VISIBLE,
-        LEFT_MARGIN, 130, 100, 25,
+        LEFT_MARGIN, 90, 120, 25,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     SendMessage(hLabel3, WM_SETFONT, (WPARAM)hFont, TRUE);
 
+    s_delayDurationEdit = CreateWindow(L"EDIT", NULL,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
+        LEFT_MARGIN + 130, 90, 60, 25,
+        hwnd, (HMENU)ID_DELAY_DURATION, GetModuleHandle(NULL), NULL);
+    SendMessage(s_delayDurationEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+    s_autoStartCheck = CreateWindow(L"BUTTON", L"开机自启动",
+        WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+        LEFT_MARGIN, 130, 150, 25,
+        hwnd, (HMENU)ID_AUTO_START, GetModuleHandle(NULL), NULL);
+    SendMessage(s_autoStartCheck, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+    HWND hLabel4 = CreateWindow(L"STATIC", L"休息提示语:",
+        WS_CHILD | WS_VISIBLE,
+        LEFT_MARGIN, 160, 100, 25,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hLabel4, WM_SETFONT, (WPARAM)hFont, TRUE);
+
     s_tipsEdit = CreateWindow(L"EDIT", NULL,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL,
-        LEFT_MARGIN, 160, CONTENT_WIDTH, 150,  // 使用计算的内容宽度
+        LEFT_MARGIN, 190, CONTENT_WIDTH, 150,  // 使用计算的内容宽度
         hwnd, (HMENU)ID_TIPS_EDIT, GetModuleHandle(NULL), NULL);
     SendMessage(s_tipsEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
+
+    // 在工作时长输入框右侧添加二维码
+    const int QR_SIZE = 120;  // 二维码大小
+    const int QR_X = WINDOW_WIDTH - RIGHT_MARGIN - QR_SIZE;  // 二维码右对齐
+    const int QR_Y = 20;  // 二维码Y坐标
+
+    // 创建二维码图片控件
+    HWND hQRCode = CreateWindow(L"STATIC", NULL,
+        WS_CHILD | WS_VISIBLE | SS_BITMAP,
+        QR_X, QR_Y, QR_SIZE, QR_SIZE,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+
+    // 加载二维码图片
+    HBITMAP hBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
+        MAKEINTRESOURCE(IDB_QRCODE),
+        IMAGE_BITMAP,
+        QR_SIZE, QR_SIZE,
+        LR_DEFAULTCOLOR);
+
+    // 设置二维码图片
+    SendMessage(hQRCode, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
+
+    // 在二维码下方添加文本说明
+    HWND hQRText = CreateWindow(L"STATIC", L"微信扫码联系作者",
+        WS_CHILD | WS_VISIBLE | SS_CENTER,
+        QR_X, QR_Y + QR_SIZE + 5, QR_SIZE, 20,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    SendMessage(hQRText, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     // 调整按钮位置，增加右边距
     const int BTN_WIDTH = 90;
@@ -148,6 +196,9 @@ void Settings::CreateControls(HWND hwnd)
 
     _itow_s(g_appState.breakDuration, buffer, 10);
     SetWindowText(s_breakDurationEdit, buffer);
+
+    _itow_s(g_appState.delayDuration, buffer, 10);
+    SetWindowText(s_delayDurationEdit, buffer);
 
     SendMessage(s_autoStartCheck, BM_SETCHECK,
         g_appState.autoStart ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -181,7 +232,15 @@ LRESULT CALLBACK Settings::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
         break;
 
     case WM_DESTROY:
-        s_hwnd = NULL;
+        {
+            HWND parentHwnd = GetParent(hwnd);
+            if (parentHwnd)
+            {
+                EnableWindow(parentHwnd, TRUE);
+                SetForegroundWindow(parentHwnd);
+            }
+            s_hwnd = NULL;
+        }
         return 0;
     }
 
@@ -208,6 +267,14 @@ void Settings::SaveAndClose(HWND hwnd)
         g_appState.breakDuration = breakDuration;
     }
 
+    // 获取延迟时长
+    GetWindowText(s_delayDurationEdit, buffer, 16);
+    int delayDuration = _wtoi(buffer);
+    if (delayDuration > 0)
+    {
+        g_appState.delayDuration = delayDuration;
+    }
+
     // 获取自启动设置
     bool autoStart = SendMessage(s_autoStartCheck, BM_GETCHECK, 0, 0) == BST_CHECKED;
     if (autoStart != g_appState.autoStart)
@@ -218,6 +285,22 @@ void Settings::SaveAndClose(HWND hwnd)
 
     // 保存设置
     SaveSettings();
+
+    // 重置定时器
+    if (g_appState.workTimer)
+    {
+        KillTimer(g_appState.hwnd, g_appState.workTimer);
+        KillTimer(g_appState.hwnd, g_appState.displayTimer);
+        MainWindow::InitTimers();
+    }
+
+    // 启用父窗口
+    HWND parentHwnd = GetParent(hwnd);
+    if (parentHwnd)
+    {
+        EnableWindow(parentHwnd, TRUE);
+        SetForegroundWindow(parentHwnd);
+    }
 
     // 关闭窗口
     DestroyWindow(hwnd);
@@ -244,6 +327,12 @@ bool Settings::LoadSettings()
             g_appState.breakDuration = value;
         }
 
+        if (RegQueryValueEx(hKey, L"DelayDuration", NULL, NULL,
+            (LPBYTE)&value, &size) == ERROR_SUCCESS)
+        {
+            g_appState.delayDuration = value;
+        }
+
         RegCloseKey(hKey);
         return true;
     }
@@ -262,6 +351,10 @@ bool Settings::SaveSettings()
 
         value = g_appState.breakDuration;
         RegSetValueEx(hKey, L"BreakDuration", 0, REG_DWORD,
+            (LPBYTE)&value, sizeof(DWORD));
+
+        value = g_appState.delayDuration;
+        RegSetValueEx(hKey, L"DelayDuration", 0, REG_DWORD,
             (LPBYTE)&value, sizeof(DWORD));
 
         RegCloseKey(hKey);

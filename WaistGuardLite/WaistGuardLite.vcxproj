@@ -145,6 +145,7 @@
     <ClCompile Include="PreRestWindow.cpp" />
     <ClCompile Include="RestWindow.cpp" />
     <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="TimerManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WaistGuardLite.rc" />

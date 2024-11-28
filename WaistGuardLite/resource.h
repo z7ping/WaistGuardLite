@@ -1,18 +1,18 @@
 ﻿//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ ���ɵİ����ļ���
-// �� WaistGuardLite.rc ʹ��
+// Microsoft Visual C++ ɵİļ
+//  WaistGuardLite.rc ʹ
 //
 #define IDI_WAISTGUARDLITE             101
 #define IDI_SMALL                      102
 #define IDS_APP_TITLE                  103
 #define IDC_WAISTGUARDLITE            109
 
-// �Ի���
+// Ի
 #define IDD_ABOUTBOX                   104
 #define IDM_ABOUT                      105
 #define IDM_EXIT                       106
 
-// ���̲˵�����
+// ̲˵
 #define IDM_TRAY_EXIT                  201
 #define IDM_TRAY_SHOW                  202
 #define IDM_TRAY_REST                  203
@@ -20,8 +20,10 @@
 #define IDM_TRAY_SETTINGS              205
 #define IDM_TRAY_ABOUT                 206
 
-// ͼƬ��Դ
-#define IDB_QRCODE            301  // ʹ���µ�ID��Χ�������ͻ
+// ͼƬԴ
+#define IDB_QRCODE            301  // ʹµIDΧͻ
+
+#define IDC_STATUSBAR    1100  // 添加状态栏控件ID
 
 // Next default values for new objects
 // 

@@ -35,30 +35,20 @@ void PreRestWindow::CreateControls(HWND hwnd)
         SendMessage(hIconCtrl, STM_SETICON, (WPARAM)hIcon, 0);
     }
 
-    // 创建提示文本
-    wchar_t text[64];
-    swprintf_s(text, s_isManualTriggered ?
-        L"即将开始休息：%d秒" :
-        L"工作时间到了，%d秒后开始休息",
-        s_remainingSeconds);
-
-    HWND hTips = CreateWindow(L"STATIC", text,
-        WS_CHILD | WS_VISIBLE | SS_CENTER,  // 居中对齐
-        LEFT_MARGIN, currentY + 50, CONTENT_WIDTH, 25,
-        hwnd, NULL, GetModuleHandle(NULL), NULL);
-    SendMessage(hTips, WM_SETFONT, (WPARAM)hFont, TRUE);
-
-    // 创建延迟按钮和关闭按钮
+    // 创建延迟按钮
     const int BTN_WIDTH = 90;
     const int BTN_HEIGHT = 30;
-    const int BTN_SPACING = 10;
-    const int TOTAL_BTN_WIDTH = (BTN_WIDTH * 2) + BTN_SPACING;
-    const int BTN_START_X = (WINDOW_WIDTH - TOTAL_BTN_WIDTH) / 2;
+    const int BTN_X = (WINDOW_WIDTH - BTN_WIDTH) / 2;
+    const int BTN_Y = 120;
+
+    // 创建按钮文本
+    wchar_t btnText[32];
+    swprintf_s(btnText, L"延迟%d分钟", g_appState.delayDuration);  // 使用设置的延迟时长
 
     // 延迟按钮
-    HWND hDelayBtn = CreateWindow(L"BUTTON", L"延迟3分钟",
+    HWND hDelayBtn = CreateWindow(L"BUTTON", btnText,  // 使用动态文本
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        BTN_START_X, currentY + 100,
+        BTN_X, BTN_Y,
         BTN_WIDTH, BTN_HEIGHT,
         hwnd, (HMENU)1001, GetModuleHandle(NULL), NULL);
     SendMessage(hDelayBtn, WM_SETFONT, (WPARAM)hFont, TRUE);
@@ -72,12 +62,12 @@ bool PreRestWindow::Create(bool isManual)
     // 注册窗口类
     RegisterWindowClass(GetModuleHandle(NULL));
 
-    // 创建窗口
+    // 创建窗口，修改窗口样式
     s_hwnd = CreateWindowEx(
-        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // 扩展样式：对话框边框
+        WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,  // 扩展样式：对话框边框和总在最前
         PRE_REST_WINDOW_CLASS,   // 窗口类名
         L"即将休息",             // 窗口标题
-        WS_OVERLAPPEDWINDOW,    // 使用标准窗口样式，与设置界面保持一致
+        WS_POPUP | WS_CAPTION | WS_SYSMENU,  // 修改为无边框窗口，只保留标题栏，去掉关闭按钮
         0, 0,                    // 位置
         400, 200,               // 大小
         NULL, NULL,             // 父窗口和菜单
@@ -87,6 +77,13 @@ bool PreRestWindow::Create(bool isManual)
 
     if (s_hwnd)
     {
+        // 移除窗口的系统菜单中的关闭按钮
+        HMENU hMenu = GetSystemMenu(s_hwnd, FALSE);
+        if (hMenu)
+        {
+            RemoveMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+        }
+
         // 初始化
         s_isManualTriggered = isManual;
         s_remainingSeconds = isManual ? 5 : 10;  // 手动触发5秒，自动触发10秒
@@ -157,7 +154,7 @@ LRESULT CALLBACK PreRestWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         wchar_t text[64];
         swprintf_s(text, s_isManualTriggered ?
             L"即将开始休息：%d秒" :
-            L"工作时间到了，%d秒后开始休息",
+            L"休息时间到了，%d秒后开始休息",
             s_remainingSeconds);
         DrawText(hdc, text, -1, &rect, DT_CENTER | DT_SINGLELINE);
 
@@ -194,10 +191,19 @@ VOID CALLBACK PreRestWindow::TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, D
     s_remainingSeconds--;
     if (s_remainingSeconds <= 0)
     {
+        if (!s_isDelayed)
+        {
+            // 倒计时结束，显示休息窗口
+            g_appState.isResting = true;
+            RestWindow::Create(g_appState.breakDuration);
+
+            // 更新托盘图标状态
+            StringCchCopy(g_appState.nid.szTip, ARRAYSIZE(g_appState.nid.szTip), L"正在休息...");
+            Shell_NotifyIcon(NIM_MODIFY, &g_appState.nid);
+        }
         Close();
         return;
     }
-
     InvalidateRect(hwnd, NULL, TRUE);
 }
 
@@ -208,5 +214,28 @@ void PreRestWindow::Close()
         KillTimer(s_hwnd, s_timer);
         DestroyWindow(s_hwnd);
         s_hwnd = NULL;
+        
+        if (s_isDelayed)
+        {
+            // 使用设置的延迟时长
+            g_appState.isPreResting = false;
+            g_appState.workTimer = SetTimer(g_appState.hwnd, 1, 
+                g_appState.delayDuration * 60 * 1000,  // 使用设置的延迟时长
+                (TIMERPROC)MainWindow::WorkTimerProc);
+            g_appState.displayTimer = SetTimer(g_appState.hwnd, 2, 1000, 
+                (TIMERPROC)MainWindow::DisplayTimerProc);
+
+            // 更新托盘图标状态
+            StringCchCopy(g_appState.nid.szTip, ARRAYSIZE(g_appState.nid.szTip), L"已延迟休息");
+            Shell_NotifyIcon(NIM_MODIFY, &g_appState.nid);
+        }
+        else if (!g_appState.isResting)  // 如果不是进入休息状态，需要重置预休息状态
+        {
+            g_appState.isPreResting = false;
+        }
+        
+        // 重置状态变量
+        s_isManualTriggered = false;
+        s_isDelayed = false;
     }
 }

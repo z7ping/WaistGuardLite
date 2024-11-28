@@ -1,5 +1,8 @@
 ﻿// PreRestWindow.h
 #pragma once
+#include "main.h"
+#include "RestWindow.h"
+#include "MainWindow.h"
 #include <windows.h>
 #include "resource.h"
 
