@@ -45,4 +45,20 @@ void TimerManager::RestartTimer()
     // 更新显示
     InvalidateRect(g_appState.hwnd, NULL, TRUE);
     UpdateWindow(g_appState.hwnd);
+}
+
+int TimerManager::CalculateElapsedMinutes(const SYSTEMTIME& startTime, const SYSTEMTIME& currentTime)
+{
+    FILETIME ft1, ft2;
+    SystemTimeToFileTime(&startTime, &ft1);
+    SystemTimeToFileTime(&currentTime, &ft2);
+
+    ULARGE_INTEGER u1, u2;
+    u1.LowPart = ft1.dwLowDateTime;
+    u1.HighPart = ft1.dwHighDateTime;
+    u2.LowPart = ft2.dwLowDateTime;
+    u2.HighPart = ft2.dwHighDateTime;
+
+    ULONGLONG diff = (u2.QuadPart - u1.QuadPart) / 10000000;  // 转换为秒
+    return (int)(diff / 60);  // 转换为分钟
 } 

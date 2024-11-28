@@ -36,3 +36,12 @@
 #define _APS_NEXT_SYMED_VALUE          110
 #endif
 #endif
+
+#define VERSION_MAJOR               1
+#define VERSION_MINOR               0
+#define VERSION_REVISION            0
+#define VERSION_BUILD               0
+
+#define VER_COMPANYNAME_STR        "程序员七平"
+#define VER_FILEDESCRIPTION_STR    "WaistGuard Lite - 腰部健康保护应用"
+#define VER_PRODUCTNAME_STR        "WaistGuard Lite"

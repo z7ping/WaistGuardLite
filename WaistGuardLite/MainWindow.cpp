@@ -2,43 +2,78 @@
 #include "MainWindow.h"
 #include <strsafe.h>
 
+// 定义静态成员变量
+HWND MainWindow::hStatus = NULL;
+
+void MainWindow::LogError(const wchar_t* message)
+{
+    wchar_t logPath[MAX_PATH];
+    GetModuleFileName(NULL, logPath, MAX_PATH);
+    PathRemoveFileSpec(logPath);
+    PathAppend(logPath, L"error.log");
+    
+    FILE* file;
+    if (_wfopen_s(&file, logPath, L"a") == 0) {
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+        fwprintf(file, L"[%04d-%02d-%02d %02d:%02d:%02d] %s\n",
+            st.wYear, st.wMonth, st.wDay,
+            st.wHour, st.wMinute, st.wSecond,
+            message);
+        fclose(file);
+    }
+}
+
 bool MainWindow::Create(HINSTANCE hInstance)
 {
-    // 注册窗口类
-    WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = CLASS_NAME;
-    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);
-    RegisterClass(&wc);
+    try {
+        // 注册窗口类
+        WNDCLASS wc = { 0 };
+        wc.lpfnWndProc = WindowProc;
+        wc.hInstance = hInstance;
+        wc.lpszClassName = CLASS_NAME;
+        wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.hbrBackground = CreateSolidBrush(APP_BG_COLOR);
+        if (!RegisterClass(&wc)) {
+            LogError(L"Failed to register window class");
+            return false;
+        }
 
-    // 创建窗口
-    g_appState.hwnd = CreateWindowEx(
-        0,
-        CLASS_NAME,
-        WINDOW_TITLE,
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        400, 225,
-        NULL,
-        NULL,
-        hInstance,
-        NULL
-    );
+        // 创建窗口
+        g_appState.hwnd = CreateWindowEx(
+            0,
+            CLASS_NAME,
+            WINDOW_TITLE,
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT, CW_USEDEFAULT,
+            400, 225,
+            NULL,
+            NULL,
+            hInstance,
+            NULL
+        );
 
-    if (!g_appState.hwnd)
+        if (!g_appState.hwnd) {
+            LogError(L"Failed to create main window");
+            return false;
+        }
+
+        // 初始化应用状态
+        g_appState.workDuration = DEFAULT_WORK_MINUTES;
+        g_appState.breakDuration = DEFAULT_BREAK_MINUTES;
+
+        // 设置休息窗口的定时器回调
+        RestWindow::SetTimerCallbacks(WorkTimerProc, DisplayTimerProc);
+
+        return true;
+    }
+    catch (const std::exception& e) {
+        char buffer[256];
+        sprintf_s(buffer, "Exception: %s", e.what());
+        LogError(L"Unexpected error occurred");
         return false;
-
-    // 初始化应用状态
-    g_appState.workDuration = DEFAULT_WORK_MINUTES;
-    g_appState.breakDuration = DEFAULT_BREAK_MINUTES;
-
-    // 设置休息窗口的定时器回调
-    RestWindow::SetTimerCallbacks(WorkTimerProc, DisplayTimerProc);
-
-    return true;
+    }
 }
 
 void MainWindow::InitTimers()
@@ -48,14 +83,26 @@ void MainWindow::InitTimers()
 
 void MainWindow::CreateTrayIcon()
 {
+    // 添加更详细的程序信息
     ZeroMemory(&g_appState.nid, sizeof(NOTIFYICONDATA));
     g_appState.nid.cbSize = sizeof(NOTIFYICONDATA);
     g_appState.nid.hWnd = g_appState.hwnd;
     g_appState.nid.uID = 1;
-    g_appState.nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_INFO;
+    g_appState.nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP | NIF_INFO;  // 添加 NIF_INFO
     g_appState.nid.uCallbackMessage = WM_TRAYICON;
     g_appState.nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_WAISTGUARDLITE));
-    StringCchCopy(g_appState.nid.szTip, ARRAYSIZE(g_appState.nid.szTip), WINDOW_TITLE);
+    
+    // 添加更详细的提示信息
+    StringCchCopy(g_appState.nid.szTip, ARRAYSIZE(g_appState.nid.szTip), 
+        L"护腰神器 - 保护您的健康\n点击查看详情");
+    
+    // 首次显示气泡提示
+    StringCchCopy(g_appState.nid.szInfoTitle, ARRAYSIZE(g_appState.nid.szInfoTitle), 
+        L"护腰神器已启动");
+    StringCchCopy(g_appState.nid.szInfo, ARRAYSIZE(g_appState.nid.szInfo), 
+        L"程序将在后台运行，定时提醒您休息\n右键点击托盘图标可查看更多选项");
+    g_appState.nid.dwInfoFlags = NIIF_INFO;
+    
     Shell_NotifyIcon(NIM_ADD, &g_appState.nid);
 }
 
@@ -79,34 +126,40 @@ void MainWindow::UpdateTrayIcon()
 
 void MainWindow::UpdateWorkTime()
 {
+    if (!g_appState.hwnd || g_appState.isResting) return;
+
     SYSTEMTIME currentTime;
     GetSystemTime(&currentTime);
-
-    // 计算工作时长
-    FILETIME ft1, ft2;
-    SystemTimeToFileTime(&g_appState.startTime, &ft1);
-    SystemTimeToFileTime(&currentTime, &ft2);
-
-    ULARGE_INTEGER u1, u2;
-    u1.LowPart = ft1.dwLowDateTime;
-    u1.HighPart = ft1.dwHighDateTime;
-    u2.LowPart = ft2.dwLowDateTime;
-    u2.HighPart = ft2.dwHighDateTime;
-
-    ULONGLONG diff = (u2.QuadPart - u1.QuadPart) / 10000000;  // 转换为秒
-    int minutes = (int)(diff / 60);
-    int seconds = (int)(diff % 60);
-
+    
+    // 计算剩余时间
+    int elapsedMinutes = TimerManager::CalculateElapsedMinutes(g_appState.startTime, currentTime);
+    int remainingMinutes = g_appState.workDuration - elapsedMinutes;
+    
+    if (remainingMinutes < 0) remainingMinutes = 0;
+    
     // 更新窗口标题
-    wchar_t titleText[64];
-    StringCchPrintf(titleText, ARRAYSIZE(titleText), L"%s — By：程序员七平", WINDOW_TITLE);
-    SetWindowText(g_appState.hwnd, titleText);
-
-    // 更新客户区显示
-    RECT rect;
-    GetClientRect(g_appState.hwnd, &rect);
-    rect.bottom -= 25;  // 为状态栏留出空间
-    InvalidateRect(g_appState.hwnd, &rect, TRUE);
+    wchar_t title[256];
+    StringCchPrintf(title, ARRAYSIZE(title), 
+        L"护腰神器 - By：程序员七平");
+    SetWindowText(g_appState.hwnd, title);
+    
+    // 更新状态栏
+    wchar_t status[256];
+    StringCchPrintf(status, ARRAYSIZE(status),
+        L" 工作时长：%d分钟  休息时长：%d分钟  下次休息还有：%d分钟",
+        g_appState.workDuration, g_appState.breakDuration, remainingMinutes);
+    
+    SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)status);
+    
+    // 提前提醒功能
+    if (remainingMinutes == 5) {
+        g_appState.nid.dwInfoFlags = NIIF_INFO;
+        StringCchCopy(g_appState.nid.szInfoTitle, ARRAYSIZE(g_appState.nid.szInfoTitle),
+            L"休息提醒");
+        StringCchCopy(g_appState.nid.szInfo, ARRAYSIZE(g_appState.nid.szInfo),
+            L"还有5分钟就要休息了，请注意安排工作进度");
+        Shell_NotifyIcon(NIM_MODIFY, &g_appState.nid);
+    }
 }
 
 VOID CALLBACK MainWindow::DisplayTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
@@ -122,8 +175,43 @@ VOID CALLBACK MainWindow::WorkTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, 
     }
 }
 
+bool MainWindow::CheckSystemState()
+{
+    // 检查是否全屏
+    HWND foregroundWindow = GetForegroundWindow();
+    if (foregroundWindow) {
+        RECT windowRect, screenRect;
+        GetWindowRect(foregroundWindow, &windowRect);
+        GetWindowRect(GetDesktopWindow(), &screenRect);
+        
+        if (windowRect.left == screenRect.left &&
+            windowRect.top == screenRect.top &&
+            windowRect.right == screenRect.right &&
+            windowRect.bottom == screenRect.bottom) {
+            return false; // 全屏状态，不打断
+        }
+    }
+    
+    // 检查系统电源状态
+    SYSTEM_POWER_STATUS powerStatus;
+    if (GetSystemPowerStatus(&powerStatus)) {
+        if (powerStatus.ACLineStatus == 0) { // 使用电池
+            // 可以调整提醒间隔
+            return true;
+        }
+    }
+    
+    return true;
+}
+
 void MainWindow::ShowRestWindow(bool isManualTrigger)
 {
+    if (!isManualTrigger && !CheckSystemState()) {
+        // 推迟提醒
+        SetTimer(g_appState.hwnd, 3, 5 * 60 * 1000, DelayedRestTimerProc);
+        return;
+    }
+    
     if (!g_appState.isResting && !g_appState.isPreResting)
     {
         // 停止当前计时器
@@ -405,4 +493,29 @@ void MainWindow::HandleTrayCommand(HWND hwnd, WPARAM wParam)
 void MainWindow::RestartTimer()
 {
     TimerManager::RestartTimer();
+}
+
+void MainWindow::ShowAboutInfo()
+{
+    // 显示简单的 Windows 消息框
+    wchar_t aboutText[512];
+    swprintf_s(aboutText, 
+        L"WaistGuard Lite\n"
+        L"版本: %d.%d.%d.%d\n"
+        L"公司: %s\n"
+        L"描述: %s",
+        VERSION_MAJOR,
+        VERSION_MINOR,
+        VERSION_REVISION,
+        VERSION_BUILD,
+        L"程序员七平",
+        L"WaistGuard Lite - 腰部健康保护应用");
+    
+    MessageBox(NULL, aboutText, L"关于", MB_OK | MB_ICONINFORMATION);
+}
+
+VOID CALLBACK MainWindow::DelayedRestTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+{
+    KillTimer(hwnd, idEvent);
+    ShowRestWindow(false);
 }
